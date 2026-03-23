@@ -90,9 +90,10 @@ export function OrderFilters({
             
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-[130px] h-10 justify-start text-left font-normal bg-secondary border-border text-foreground hover:bg-muted"
+                <Button
+                  variant="outline"
+                  style={{ width: 200 }}
+                  className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                   {startDate ? format(startDate, "yyyy-MM-dd") : "Start"}
@@ -113,9 +114,10 @@ export function OrderFilters({
             
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-[130px] h-10 justify-start text-left font-normal bg-secondary border-border text-foreground hover:bg-muted"
+                <Button
+                  variant="outline"
+                  style={{ width: 200 }}
+                  className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                   {endDate ? format(endDate, "yyyy-MM-dd") : "End"}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { subMonths } from "date-fns"
 import { Header } from "@/components/pos/header"
 import { TabNavigation } from "@/components/pos/tab-navigation"
 import { OrderFilters } from "@/components/pos/order-filters"
@@ -24,8 +25,8 @@ export default function POSOnlinePickupPage() {
   // Filter states
   const [searchQuery, setSearchQuery] = useState("")
   const [dateType, setDateType] = useState("order")
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date("2026-01-06"))
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date("2026-01-20"))
+  const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   const [pickupStatus, setPickupStatus] = useState<PickupStatus | "all">("all")
   
   // Pagination states
