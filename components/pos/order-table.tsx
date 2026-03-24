@@ -16,7 +16,14 @@ function formatDateTime(dateStr: string | undefined): string {
   if (!dateStr) return "-"
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
-  return `${format(d, "yy-MM-dd HH:mm")} (PST)`
+  return `${format(d, "yyyy-MM-dd HH:mm")} (PST)`
+}
+
+function formatDateOnly(dateStr: string | undefined): string {
+  if (!dateStr) return "-"
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return format(d, "yyyy-MM-dd")
 }
 
 interface OrderTableProps {
@@ -78,7 +85,7 @@ export function OrderTable({
               <div className="text-xs font-normal text-muted-foreground">(Registration)</div>
             </TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Inbound Date</TableHead>
-            <TableHead className="font-semibold text-foreground text-center h-14">Status</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Pickup Status</TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Order No.</TableHead>
             <TableHead className="font-semibold text-foreground h-14">
               <div>Product Info</div>
@@ -99,7 +106,7 @@ export function OrderTable({
                   {formatDateTime(order.orderDate)}
                 </TableCell>
                 <TableCell className="text-sm text-center py-4 whitespace-nowrap">
-                  {formatDateTime(order.pickupDate)}
+                  {formatDateOnly(order.pickupDate)}
                 </TableCell>
                 <TableCell className="text-sm text-center py-4 whitespace-nowrap">
                   {formatDateTime(order.outboundDate)}

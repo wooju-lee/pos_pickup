@@ -11,6 +11,7 @@ import { OrderDetailModal } from "@/components/pos/order-detail-modal"
 import { PickupCompleteModal } from "@/components/pos/pickup-complete-modal"
 import { CancelModal } from "@/components/pos/cancel-modal"
 import { ReturnModal } from "@/components/pos/return-modal"
+import { POSMain } from "@/components/pos/pos-main"
 import { Button } from "@/components/ui/button"
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
@@ -177,80 +178,86 @@ export default function POSOnlinePickupPage() {
       <Toaster richColors position="top-right" />
       <Header />
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      <main className="p-6">
-        {/* Page Title */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Store Pickup List</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            View and manage online preorder pickup orders from your store.
-          </p>
-        </div>
 
-        <div className="bg-card rounded-lg border border-border p-6 space-y-6">
-          {/* Filters */}
-          <OrderFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            dateType={dateType}
-            onDateTypeChange={setDateType}
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            pickupStatuses={pickupStatuses}
-            onPickupStatusesChange={setPickupStatuses}
-          />
-          
-          {/* Divider */}
-          <div className="border-t border-border" />
-          
-          {/* Results count and actions */}
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-foreground">
-              Total <span className="font-bold text-primary">{filteredOrders.length}</span> Count
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsReturnOpen(true)}
-                className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Return Processing
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </Button>
+      {activeTab === "pos-main" && <POSMain />}
+
+      {activeTab === "store-pickup" && (
+        <>
+          <main className="p-6">
+            {/* Page Title */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Store Pickup List</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                View and manage online preorder pickup orders from your store.
+              </p>
             </div>
-          </div>
-          
-          {/* Table */}
-          <OrderTable
-            orders={paginatedOrders}
-            onViewDetail={handleViewDetail}
-          />
-          
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredOrders.length}
-            rowsPerPage={rowsPerPage}
-            onPageChange={setCurrentPage}
-            onRowsPerPageChange={(rows) => {
-              setRowsPerPage(rows)
-              setCurrentPage(1)
-            }}
-          />
-        </div>
-      </main>
 
-      {/* Modals */}
+            <div className="bg-card rounded-lg border border-border p-6 space-y-6">
+              {/* Filters */}
+              <OrderFilters
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                dateType={dateType}
+                onDateTypeChange={setDateType}
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                pickupStatuses={pickupStatuses}
+                onPickupStatusesChange={setPickupStatuses}
+              />
+
+              {/* Divider */}
+              <div className="border-t border-border" />
+
+              {/* Results count and actions */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-foreground">
+                  Total <span className="font-bold text-primary">{filteredOrders.length}</span> Count
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsReturnOpen(true)}
+                    className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Return Processing
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <OrderTable
+                orders={paginatedOrders}
+                onViewDetail={handleViewDetail}
+              />
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredOrders.length}
+                rowsPerPage={rowsPerPage}
+                onPageChange={setCurrentPage}
+                onRowsPerPageChange={(rows) => {
+                  setRowsPerPage(rows)
+                  setCurrentPage(1)
+                }}
+              />
+            </div>
+          </main>
+        </>
+      )}
+
+      {/* Store Pickup Modals */}
       <OrderDetailModal
         order={selectedOrder}
         open={isDetailOpen}

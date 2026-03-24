@@ -79,10 +79,10 @@ export function OrderFilters({
     <div className="space-y-6">
       {/* First Row - Date and Status filters */}
       <div className="flex flex-wrap items-end gap-8">
-        {/* Search Period (Create Date) */}
+        {/* Search Period */}
         <div>
           <label className="text-sm font-medium text-muted-foreground block mb-2">
-            Search Period (Create Date)
+            Search Period
           </label>
           <div className="flex items-center gap-2">
             <Select value={dateType} onValueChange={onDateTypeChange}>

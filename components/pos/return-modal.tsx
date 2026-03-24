@@ -32,7 +32,7 @@ function formatDT(dateStr?: string): string {
   if (!dateStr) return "-"
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
-  return `${format(d, "yy-MM-dd HH:mm")} (PST)`
+  return `${format(d, "yyyy-MM-dd HH:mm")} (PST)`
 }
 
 interface ReturnModalProps {
