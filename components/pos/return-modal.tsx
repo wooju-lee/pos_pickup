@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,8 +15,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Badge } from "@/components/ui/badge"
-import type { ReturnRequest, InventoryLocation } from "@/lib/types"
+import type { ReturnRequest, InventoryLocation, PickupStatus } from "@/lib/types"
 import { RotateCcw, Search, Package, MapPin, AlertCircle, CheckCircle } from "lucide-react"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+
+const STATUS_CONFIG: Record<PickupStatus, { label: string; className: string }> = {
+  waiting: { label: "Waiting for Pickup", className: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+  ready: { label: "Ready for Pickup", className: "bg-sky-50 text-sky-600 border-sky-200" },
+  completed: { label: "Completed", className: "bg-emerald-50 text-emerald-600 border-emerald-200" },
+  cancelled: { label: "Cancelled", className: "bg-rose-50 text-rose-500 border-rose-200" },
+  refunded: { label: "Refunded", className: "bg-amber-50 text-amber-600 border-amber-200" },
+}
+
+function formatDT(dateStr?: string): string {
+  if (!dateStr) return "-"
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return `${format(d, "yy-MM-dd HH:mm")} (PST)`
+}
 
 interface ReturnModalProps {
   open: boolean
@@ -27,9 +43,9 @@ interface ReturnModalProps {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("ko-KR", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "KRW",
+    currency: "USD",
   }).format(amount)
 }
 
@@ -48,7 +64,7 @@ export function ReturnModal({
 
   const handleSearch = async () => {
     if (!qrCode.trim()) {
-      setError("반품 QR/ID를 입력해주세요.")
+      setError("Please enter a Return QR/ID.")
       return
     }
 
@@ -61,10 +77,10 @@ export function ReturnModal({
       if (result) {
         setReturnRequest(result)
       } else {
-        setError("해당 반품 요청을 찾을 수 없습니다.")
+        setError("Return request not found.")
       }
     } catch {
-      setError("조회 중 오류가 발생했습니다.")
+      setError("An error occurred while searching.")
     } finally {
       setIsSearching(false)
     }
@@ -98,25 +114,25 @@ export function ReturnModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RotateCcw className="h-5 w-5 text-primary" />
-            반품 처리
+            Return Processing
           </DialogTitle>
-          <DialogDescription>
-            온라인에서 발급받은 반품 QR 코드 또는 반품 ID를 입력하여 반품을 처리합니다.
+          <DialogDescription className="text-sm text-primary font-medium">
+            Enter the return QR code or Return ID issued online to process the return.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* QR 코드 입력 */}
+          {/* QR Code Input */}
           <div className="space-y-2">
-            <Label htmlFor="qr-code">반품 QR / ID</Label>
+            <Label htmlFor="qr-code">Return QR / ID</Label>
             <div className="flex gap-2">
               <Input
                 id="qr-code"
-                placeholder="RTN-2024-000000"
+                placeholder="Please scan the return QR code"
                 value={qrCode}
                 onChange={(e) => {
                   setQrCode(e.target.value)
@@ -124,7 +140,7 @@ export function ReturnModal({
                   if (returnRequest) setReturnRequest(null)
                 }}
                 onKeyDown={handleKeyDown}
-                className="font-mono"
+                className="font-mono text-xs placeholder:text-gray-300"
                 disabled={isSearching || isProcessing}
               />
               <Button
@@ -146,61 +162,74 @@ export function ReturnModal({
             )}
           </div>
 
-          {/* 반품 정보 */}
+          {/* Return Info */}
           {returnRequest && (
             <>
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">반품 정보 확인됨</span>
+                  <span className="text-sm font-medium text-primary">Return Info Verified</span>
                 </div>
                 <Separator />
-                <div className="grid grid-cols-2 gap-3 text-sm">
+
+                {/* Order & Return Info Grid */}
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                   <div>
-                    <p className="text-muted-foreground">주문번호</p>
-                    <p className="font-mono">{returnRequest.orderNumber}</p>
+                    <p className="text-muted-foreground text-xs">Order No.</p>
+                    <p className="font-mono font-medium">{returnRequest.orderNumber}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">고객명</p>
-                    <p>{returnRequest.customerName}</p>
+                    <p className="text-muted-foreground text-xs">Return ID</p>
+                    <p className="font-mono font-medium">{returnRequest.returnQrCode}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Order Date</p>
+                    <p>{formatDT(returnRequest.orderDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Pickup Completed Date</p>
+                    <p>{formatDT(returnRequest.completedAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Pickup Status</p>
+                    <span className={cn(
+                      "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md border mt-0.5",
+                      STATUS_CONFIG[returnRequest.pickupStatus].className
+                    )}>
+                      {STATUS_CONFIG[returnRequest.pickupStatus].label}
+                    </span>
                   </div>
                 </div>
-                
-                {/* 반품 상품 */}
+
+                <Separator />
+
+                {/* Return Items Table */}
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">반품 상품</p>
-                  {returnRequest.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2 rounded bg-secondary/30 text-sm"
-                    >
-                      <span>{item.productName}</span>
-                      <span className="text-muted-foreground">x{item.quantity}</span>
+                  <p className="text-xs text-muted-foreground font-medium">Return Items</p>
+                  <div className="rounded border border-border overflow-hidden">
+                    <div className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 bg-secondary/50 text-xs font-medium text-muted-foreground">
+                      <span>Product (Code / Name)</span>
+                      <span className="text-center">Qty</span>
                     </div>
-                  ))}
-                </div>
-
-                {returnRequest.reason && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">반품 사유</p>
-                    <Badge variant="outline">{returnRequest.reason}</Badge>
+                    {returnRequest.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 text-sm border-t border-border"
+                      >
+                        <span>{item.sku} / {item.productName}</span>
+                        <span className="text-center">{item.quantity}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
-
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">환불 금액</span>
-                  <span className="text-xl font-bold text-primary">
-                    {formatCurrency(returnRequest.refundAmount)}
-                  </span>
                 </div>
+
               </div>
 
-              {/* 재고 처리 위치 */}
+              {/* Inventory Location */}
               <div className="space-y-3">
                 <Label className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  재고 처리 위치
+                  Inventory Location
                 </Label>
                 <RadioGroup
                   value={location}
@@ -213,9 +242,9 @@ export function ReturnModal({
                   >
                     <RadioGroupItem value="store_online" id="return_store_online" />
                     <div className="flex-1">
-                      <p className="font-medium">온라인으로 회송</p>
+                      <p className="font-medium">Return to Online</p>
                       <p className="text-sm text-muted-foreground">
-                        Store Online 로케이션으로 반송 처리
+                        Process return to Store Online location
                       </p>
                     </div>
                     <Package className="h-5 w-5 text-muted-foreground" />
@@ -226,9 +255,9 @@ export function ReturnModal({
                   >
                     <RadioGroupItem value="store_sales" id="return_store_sales" />
                     <div className="flex-1">
-                      <p className="font-medium">매장 재고로 귀속</p>
+                      <p className="font-medium">Add to Store Inventory</p>
                       <p className="text-sm text-muted-foreground">
-                        Store Sales 로케이션에 재고 추가
+                        Add inventory to Store Sales location
                       </p>
                     </div>
                     <Package className="h-5 w-5 text-muted-foreground" />
@@ -239,26 +268,23 @@ export function ReturnModal({
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleClose} disabled={isProcessing}>
-            닫기
-          </Button>
-          {returnRequest && (
+        {returnRequest && (
+          <div className="flex justify-end pt-2">
             <Button onClick={handleConfirm} disabled={isProcessing}>
               {isProcessing ? (
                 <>
                   <Spinner className="mr-2 h-4 w-4" />
-                  처리 중...
+                  Processing...
                 </>
               ) : (
                 <>
                   <RotateCcw className="mr-2 h-4 w-4" />
-                  반품 및 환불 처리
+                  Process Return & Refund
                 </>
               )}
             </Button>
-          )}
-        </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

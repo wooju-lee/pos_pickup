@@ -8,10 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { FileText } from "lucide-react"
+import { format } from "date-fns"
 import type { PickupOrder, PickupStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
+
+function formatDateTime(dateStr: string | undefined): string {
+  if (!dateStr) return "-"
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return `${format(d, "yy-MM-dd HH:mm")} (PST)`
+}
 
 interface OrderTableProps {
   orders: PickupOrder[]
@@ -29,12 +35,16 @@ function StatusBadge({ status }: { status: PickupStatus }) {
       className: "bg-sky-50 text-sky-600 border-sky-200",
     },
     completed: {
-      label: "Pickup Completed",
+      label: "Completed",
       className: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
     cancelled: {
       label: "Cancelled",
       className: "bg-rose-50 text-rose-500 border-rose-200",
+    },
+    refunded: {
+      label: "Refunded",
+      className: "bg-amber-50 text-amber-600 border-amber-200",
     },
   }
 
@@ -75,32 +85,35 @@ export function OrderTable({
               <div className="text-xs font-normal text-muted-foreground">(Code / Name / Barcode)</div>
             </TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
-            <TableHead className="font-semibold text-foreground text-center h-14">Details</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Pickup Completed Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
               <TableRow
                 key={order.id}
-                className="hover:bg-secondary/30 border-b border-border"
+                className="hover:bg-secondary/30 border-b border-border cursor-pointer"
+                onClick={() => onViewDetail(order)}
               >
-                <TableCell className="text-sm text-center py-4">
-                  {order.orderDate}
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.orderDate)}
                 </TableCell>
-                <TableCell className="text-sm text-center py-4">
-                  {order.pickupDate}
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.pickupDate)}
                 </TableCell>
-                <TableCell className="text-sm text-center py-4">
-                  {order.outboundDate}
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.outboundDate)}
                 </TableCell>
-                <TableCell className="text-sm text-center py-4">
-                  {order.inboundDate || "-"}
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.inboundDate)}
                 </TableCell>
                 <TableCell className="text-center py-4">
                   <StatusBadge status={order.pickupStatus} />
                 </TableCell>
                 <TableCell className="text-sm text-center font-mono py-4">
-                  {order.orderNumber}
+                  <span className="text-blue-600 underline underline-offset-2 hover:text-blue-800">
+                    {order.orderNumber}
+                  </span>
                 </TableCell>
                 <TableCell className="py-4">
                   <div className="space-y-1">
@@ -120,16 +133,8 @@ export function OrderTable({
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-center py-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onViewDetail(order)}
-                    className="gap-1.5 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Detail
-                  </Button>
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.completedAt)}
                 </TableCell>
               </TableRow>
           ))}

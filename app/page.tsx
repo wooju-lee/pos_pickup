@@ -27,7 +27,7 @@ export default function POSOnlinePickupPage() {
   const [dateType, setDateType] = useState("order")
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
-  const [pickupStatus, setPickupStatus] = useState<PickupStatus | "all">("all")
+  const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed", "cancelled", "refunded"])
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -57,14 +57,33 @@ export default function POSOnlinePickupPage() {
         if (!matchesSearch) return false
       }
 
-      // Pickup status filter
-      if (pickupStatus !== "all" && order.pickupStatus !== pickupStatus) {
+      // Pickup status filter (multi-select)
+      if (pickupStatuses.length > 0 && pickupStatuses.length < 5 && !pickupStatuses.includes(order.pickupStatus)) {
         return false
+      }
+
+      // Date range filter
+      if (startDate || endDate) {
+        let dateValue: string | undefined
+        switch (dateType) {
+          case "order": dateValue = order.orderDate; break
+          case "pickup": dateValue = order.pickupDate; break
+          case "outbound": dateValue = order.outboundDate; break
+          case "inbound": dateValue = order.inboundDate; break
+          case "completed": dateValue = order.completedAt; break
+        }
+        if (dateValue) {
+          const d = new Date(dateValue)
+          if (startDate && d < new Date(startDate.toDateString())) return false
+          if (endDate && d > new Date(new Date(endDate).setHours(23, 59, 59, 999))) return false
+        } else if (startDate || endDate) {
+          return false
+        }
       }
 
       return true
     })
-  }, [orders, searchQuery, pickupStatus])
+  }, [orders, searchQuery, pickupStatuses, dateType, startDate, endDate])
 
   // Paginated orders
   const paginatedOrders = useMemo(() => {
@@ -135,8 +154,21 @@ export default function POSOnlinePickupPage() {
   // Process return
   const handleProcessReturn = async (returnRequest: ReturnRequest, location: InventoryLocation) => {
     await new Promise((resolve) => setTimeout(resolve, 500))
-    toast.success("Return Processed", {
-      description: `Refund: ${returnRequest.refundAmount.toLocaleString()}. Inventory: ${location === "store_sales" ? "Store Sales" : "Store Online"}`,
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === returnRequest.orderId
+          ? {
+              ...order,
+              status: "returned" as const,
+              pickupStatus: "refunded" as const,
+              returnedAt: new Date().toISOString(),
+              inventoryLocation: location,
+            }
+          : order
+      )
+    )
+    toast.success("Return Completed", {
+      description: "The return has been processed and the order status has been updated to Refunded.",
     })
   }
 
@@ -166,8 +198,8 @@ export default function POSOnlinePickupPage() {
             endDate={endDate}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
-            pickupStatus={pickupStatus}
-            onPickupStatusChange={setPickupStatus}
+            pickupStatuses={pickupStatuses}
+            onPickupStatusesChange={setPickupStatuses}
           />
           
           {/* Divider */}

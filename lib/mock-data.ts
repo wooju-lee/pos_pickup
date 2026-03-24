@@ -3,7 +3,7 @@ import type { PickupOrder, ReturnRequest } from "./types"
 export const mockOrders: PickupOrder[] = [
   {
     id: "1",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260301001",
     sequenceNumber: 1,
     customerName: "김민수",
     customerPhone: "010-1234-5678",
@@ -44,7 +44,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "2",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260302002",
     sequenceNumber: 2,
     customerName: "이서연",
     customerPhone: "010-2345-6789",
@@ -85,7 +85,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "3",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260303003",
     sequenceNumber: 3,
     customerName: "박지훈",
     customerPhone: "010-3456-7890",
@@ -126,7 +126,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "4",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260304004",
     sequenceNumber: 4,
     customerName: "최유진",
     customerPhone: "010-4567-8901",
@@ -168,7 +168,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "5",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260305005",
     sequenceNumber: 5,
     customerName: "정다현",
     customerPhone: "010-5678-9012",
@@ -211,7 +211,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "6",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260306006",
     sequenceNumber: 6,
     customerName: "한소희",
     customerPhone: "010-6789-0123",
@@ -253,7 +253,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "7",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260307007",
     sequenceNumber: 7,
     customerName: "강민재",
     customerPhone: "010-7890-1234",
@@ -295,7 +295,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "8",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260308008",
     sequenceNumber: 8,
     customerName: "윤서준",
     customerPhone: "010-8901-2345",
@@ -337,7 +337,7 @@ export const mockOrders: PickupOrder[] = [
   },
   {
     id: "9",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260309009",
     sequenceNumber: 9,
     customerName: "임지우",
     customerPhone: "010-9012-3456",
@@ -380,10 +380,41 @@ export const mockOrders: PickupOrder[] = [
 ]
 
 export const mockReturnRequests: Record<string, ReturnRequest> = {
+  "RTN-1001": {
+    returnQrCode: "RTN-1001",
+    orderId: "4",
+    orderNumber: "ON_20260304004",
+    customerName: "최유진",
+    items: [
+      {
+        id: "item7",
+        productName: "SMART ALIO-01",
+        sku: "1100000",
+        quantity: 1,
+        unitPrice: 380000,
+        totalPrice: 380000,
+        barcode: "8892839098",
+      },
+      {
+        id: "item8",
+        productName: "PACKAGE SET(BOLD)",
+        sku: "11403903",
+        quantity: 1,
+        unitPrice: 35000,
+        totalPrice: 35000,
+        barcode: undefined,
+      },
+    ],
+    refundAmount: 385000,
+    reason: "Product defect",
+    pickupStatus: "completed",
+    orderDate: "2026-03-01 14:00",
+    completedAt: "2026-03-17T10:15:00",
+  },
   "RTN-2024-000456": {
     returnQrCode: "RTN-2024-000456",
     orderId: "7",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260307007",
     customerName: "강민재",
     items: [
       {
@@ -397,12 +428,15 @@ export const mockReturnRequests: Record<string, ReturnRequest> = {
       },
     ],
     refundAmount: 35000,
-    reason: "제품 색상 불만족",
+    reason: "Color dissatisfaction",
+    pickupStatus: "completed",
+    orderDate: "2026-03-01 14:00",
+    completedAt: "2026-03-17T14:00:00",
   },
   "RTN-2024-000457": {
     returnQrCode: "RTN-2024-000457",
     orderId: "8",
-    orderNumber: "ON_11010101010",
+    orderNumber: "ON_20260308008",
     customerName: "윤서준",
     items: [
       {
@@ -416,6 +450,9 @@ export const mockReturnRequests: Record<string, ReturnRequest> = {
       },
     ],
     refundAmount: 55000,
-    reason: "단순 변심",
+    reason: "Changed mind",
+    pickupStatus: "completed",
+    orderDate: "2026-03-01 14:00",
+    completedAt: "2026-03-17T15:30:00",
   },
 }

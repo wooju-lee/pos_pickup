@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import {
   Table,
   TableBody,
@@ -61,42 +60,18 @@ export function OrderDetailModal({
 
         <div className="space-y-6">
           {/* Order Info */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Order No.</span>
-                <span className="text-sm font-mono font-medium">{order.orderNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Sequence No.</span>
-                <span className="text-sm font-medium">{order.sequenceNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Order Date</span>
-                <span className="text-sm">{order.orderDate}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Pickup Date</span>
-                <span className="text-sm">{order.pickupDate}</span>
-              </div>
+          <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Order No.</span>
+              <span className="text-sm font-mono font-medium">{order.orderNumber}</span>
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Customer</span>
-                <span className="text-sm font-medium">{order.customerName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Phone</span>
-                <span className="text-sm">{order.customerPhone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Email</span>
-                <span className="text-sm">{order.customerEmail}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Payment</span>
-                <span className="text-sm">{order.paymentMethod}</span>
-              </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Order Date</span>
+              <span className="text-sm">{order.orderDate}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Pickup Date</span>
+              <span className="text-sm">{order.pickupDate}</span>
             </div>
           </div>
 
@@ -110,8 +85,6 @@ export function OrderDetailModal({
                     <TableHead>Product Code</TableHead>
                     <TableHead>Product Name</TableHead>
                     <TableHead className="text-center">Qty</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -120,8 +93,6 @@ export function OrderDetailModal({
                       <TableCell className="font-mono text-sm">{item.sku}</TableCell>
                       <TableCell>{item.productName}</TableCell>
                       <TableCell className="text-center">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(item.totalPrice)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -129,32 +100,8 @@ export function OrderDetailModal({
             </div>
           </div>
 
-          {/* Payment Summary */}
-          <div className="p-4 bg-muted/30 rounded-lg space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatCurrency(order.subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Discount</span>
-              <span className="text-destructive">-{formatCurrency(order.discount)}</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between font-semibold">
-              <span>Total Amount</span>
-              <span className="text-primary">{formatCurrency(order.totalAmount)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Paid Amount</span>
-              <span>{formatCurrency(order.paidAmount)}</span>
-            </div>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
             {canProcess && (
               <>
                 <Button

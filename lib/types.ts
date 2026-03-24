@@ -11,11 +11,12 @@ export type ProcessingStatus =
   | "completed"         // 완료
   | "cancelled"         // 취소
 
-export type PickupStatus = 
-  | "waiting"      // Waiting for Pickup
-  | "ready"        // Ready for Pickup
-  | "completed"    // Pickup Completed
-  | "cancelled"    // Cancelled
+export type PickupStatus =
+  | "waiting"      // Waiting for Pickup (픽업 주문 대기)
+  | "ready"        // Ready for Pickup (고객 픽업 대기)
+  | "completed"    // Completed (픽업 완료)
+  | "cancelled"    // Cancelled (취소)
+  | "refunded"     // Refunded (반품)
 
 export type OrderStatus = 
   | "pending"      // 픽업 대기
@@ -77,4 +78,7 @@ export interface ReturnRequest {
   items: OrderItem[]
   refundAmount: number
   reason?: string
+  pickupStatus: PickupStatus
+  orderDate: string
+  completedAt?: string
 }

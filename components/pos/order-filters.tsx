@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, CalendarIcon } from "lucide-react"
+import { Search, CalendarIcon, ChevronDown, Check } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -15,6 +15,15 @@ import { Calendar } from "@/components/ui/calendar"
 import { format, subDays, subMonths } from "date-fns"
 import { ko } from "date-fns/locale"
 import type { PickupStatus } from "@/lib/types"
+import { cn } from "@/lib/utils"
+
+const PICKUP_STATUS_OPTIONS: { value: PickupStatus; label: string }[] = [
+  { value: "waiting", label: "Waiting for Pickup" },
+  { value: "ready", label: "Ready for Pickup" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "refunded", label: "Refunded" },
+]
 
 interface OrderFiltersProps {
   searchQuery: string
@@ -25,8 +34,8 @@ interface OrderFiltersProps {
   endDate: Date | undefined
   onStartDateChange: (date: Date | undefined) => void
   onEndDateChange: (date: Date | undefined) => void
-  pickupStatus: PickupStatus | "all"
-  onPickupStatusChange: (value: PickupStatus | "all") => void
+  pickupStatuses: PickupStatus[]
+  onPickupStatusesChange: (value: PickupStatus[]) => void
 }
 
 export function OrderFilters({
@@ -38,8 +47,8 @@ export function OrderFilters({
   endDate,
   onStartDateChange,
   onEndDateChange,
-  pickupStatus,
-  onPickupStatusChange,
+  pickupStatuses,
+  onPickupStatusesChange,
 }: OrderFiltersProps) {
   const today = new Date()
 
@@ -71,8 +80,8 @@ export function OrderFilters({
       {/* First Row - Date and Status filters */}
       <div className="flex flex-wrap items-end gap-8">
         {/* Search Period (Create Date) */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+        <div>
+          <label className="text-sm font-medium text-muted-foreground block mb-2">
             Search Period (Create Date)
           </label>
           <div className="flex items-center gap-2">
@@ -85,6 +94,7 @@ export function OrderFilters({
                 <SelectItem value="pickup">Pickup Date</SelectItem>
                 <SelectItem value="outbound">Outbound Date</SelectItem>
                 <SelectItem value="inbound">Inbound Date</SelectItem>
+                <SelectItem value="completed">Pickup Completed Date</SelectItem>
               </SelectContent>
             </Select>
             
@@ -92,7 +102,7 @@ export function OrderFilters({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  style={{ width: 200 }}
+                  style={{ width: 195 }}
                   className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -116,7 +126,7 @@ export function OrderFilters({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  style={{ width: 200 }}
+                  style={{ width: 195 }}
                   className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -137,7 +147,7 @@ export function OrderFilters({
         </div>
         
         {/* Quick Date Buttons */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-end gap-1">
           <Button 
             variant="outline" 
             size="sm" 
@@ -172,26 +182,82 @@ export function OrderFilters({
           </Button>
         </div>
         
-        {/* Pickup Status */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+        {/* Pickup Status - Multi Select */}
+        <div>
+          <label className="text-sm font-medium text-muted-foreground block mb-2">
             Pickup Status
           </label>
-          <Select 
-            value={pickupStatus} 
-            onValueChange={(value) => onPickupStatusChange(value as PickupStatus | "all")}
-          >
-            <SelectTrigger className="w-[180px] h-10 bg-secondary border-border text-foreground">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border">
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="waiting">Waiting for Pickup</SelectItem>
-              <SelectItem value="ready">Ready for Pickup</SelectItem>
-              <SelectItem value="completed">Pickup Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-[220px] h-10 justify-between font-normal bg-secondary border-border text-foreground hover:bg-muted"
+              >
+                <span className="truncate">
+                  {pickupStatuses.length === 0 || pickupStatuses.length === PICKUP_STATUS_OPTIONS.length
+                    ? "All"
+                    : pickupStatuses.length === 1
+                      ? PICKUP_STATUS_OPTIONS.find(o => o.value === pickupStatuses[0])?.label
+                      : `${pickupStatuses.length} selected`}
+                </span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-1 bg-popover border-border" align="start">
+              {/* All toggle */}
+              <button
+                type="button"
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent cursor-pointer",
+                  (pickupStatuses.length === 0 || pickupStatuses.length === PICKUP_STATUS_OPTIONS.length) && "font-medium"
+                )}
+                onClick={() => {
+                  if (pickupStatuses.length === PICKUP_STATUS_OPTIONS.length) {
+                    onPickupStatusesChange([])
+                  } else {
+                    onPickupStatusesChange(PICKUP_STATUS_OPTIONS.map(o => o.value))
+                  }
+                }}
+              >
+                <div className={cn(
+                  "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                  (pickupStatuses.length === 0 || pickupStatuses.length === PICKUP_STATUS_OPTIONS.length)
+                    ? "bg-primary text-primary-foreground"
+                    : "opacity-50"
+                )}>
+                  {(pickupStatuses.length === 0 || pickupStatuses.length === PICKUP_STATUS_OPTIONS.length) && (
+                    <Check className="h-3 w-3" />
+                  )}
+                </div>
+                All
+              </button>
+              {PICKUP_STATUS_OPTIONS.map((option) => {
+                const isSelected = pickupStatuses.includes(option.value)
+                return (
+                  <button
+                    type="button"
+                    key={option.value}
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent cursor-pointer"
+                    onClick={() => {
+                      if (isSelected) {
+                        onPickupStatusesChange(pickupStatuses.filter(s => s !== option.value))
+                      } else {
+                        onPickupStatusesChange([...pickupStatuses, option.value])
+                      }
+                    }}
+                  >
+                    <div className={cn(
+                      "flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      isSelected ? "bg-primary text-primary-foreground" : "opacity-50"
+                    )}>
+                      {isSelected && <Check className="h-3 w-3" />}
+                    </div>
+                    {option.label}
+                  </button>
+                )
+              })}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       
