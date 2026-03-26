@@ -89,7 +89,7 @@ export function OrderDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-3xl max-h-[90vh] overflow-y-auto min-h-[50vh]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <DialogTitle className="text-lg font-semibold">Order Detail</DialogTitle>
@@ -113,7 +113,7 @@ export function OrderDetailModal({
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Pickup Date</span>
-              <span className="text-sm">{order.pickupDate}</span>
+              <span className="text-sm">{order.pickupDate ? order.pickupDate.split(" ")[0] : "-"}</span>
             </div>
           </div>
 
@@ -124,16 +124,18 @@ export function OrderDetailModal({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>Product Code</TableHead>
-                    <TableHead>Product Name</TableHead>
+                    <TableHead>Product Code | Product Name</TableHead>
                     <TableHead className="text-center">Qty</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {order.items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono text-sm">{item.sku}</TableCell>
-                      <TableCell>{item.productName}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-mono">{item.sku}</span>
+                        <span className="text-muted-foreground mx-1.5">|</span>
+                        {item.productName}
+                      </TableCell>
                       <TableCell className="text-center">{item.quantity}</TableCell>
                     </TableRow>
                   ))}
@@ -142,38 +144,26 @@ export function OrderDetailModal({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            {canProcess && (
-              <>
-                <Button
-                  variant="destructive"
-                  onClick={() => onCancel(order)}
-                  className="gap-2"
-                >
-                  <XCircle className="h-4 w-4" />
-                  Cancel Order
-                </Button>
-                <Button
-                  onClick={() => onPickupComplete(order)}
-                  className="gap-2"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  Pickup Complete
-                </Button>
-              </>
-            )}
-            {canReturn && (
+          {/* Action Buttons - only for pending/ready orders */}
+          {canProcess && (
+            <div className="flex justify-end gap-3 pt-4">
               <Button
-                variant="outline"
-                onClick={() => onReturn(order)}
+                variant="destructive"
+                onClick={() => onCancel(order)}
                 className="gap-2"
               >
-                <RotateCcw className="h-4 w-4" />
-                Process Return
+                <XCircle className="h-4 w-4" />
+                Cancel Order
               </Button>
-            )}
-          </div>
+              <Button
+                onClick={() => onPickupComplete(order)}
+                className="gap-2"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Pickup Complete
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

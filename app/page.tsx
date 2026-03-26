@@ -19,6 +19,8 @@ import { mockOrders, mockReturnRequests } from "@/lib/mock-data"
 import type { PickupOrder, PickupStatus, InventoryLocation, ReturnRequest } from "@/lib/types"
 import { Input } from "@/components/ui/input"
 import { RotateCcw, Download, QrCode, Search } from "lucide-react"
+import * as XLSX from "xlsx"
+import { format } from "date-fns"
 
 export default function POSOnlinePickupPage() {
   const [activeTab, setActiveTab] = useState("store-pickup")
@@ -193,6 +195,60 @@ export default function POSOnlinePickupPage() {
     })
   }
 
+  // Download Excel
+  const handleDownload = () => {
+    const statusLabels: Record<PickupStatus, string> = {
+      waiting: "Waiting for Pickup",
+      ready: "Ready for Pickup",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      refunded: "Refunded",
+    }
+
+    const formatDT = (dateStr: string | undefined) => {
+      if (!dateStr) return "-"
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return `${format(d, "yyyy-MM-dd HH:mm")} (PST)`
+    }
+
+    const formatD = (dateStr: string | undefined) => {
+      if (!dateStr) return "-"
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return format(d, "yyyy-MM-dd")
+    }
+
+    const rows = filteredOrders.flatMap((order) =>
+      order.items.map((item, idx) => ({
+        "Order Date": idx === 0 ? formatDT(order.orderDate) : "",
+        "Pickup Date": idx === 0 ? formatD(order.pickupDate) : "",
+        "Outbound Date": idx === 0 ? formatDT(order.outboundDate) : "",
+        "Inbound Date": idx === 0 ? formatDT(order.inboundDate) : "",
+        "Pickup Status": idx === 0 ? statusLabels[order.pickupStatus] : "",
+        "Order No.": idx === 0 ? order.orderNumber : "",
+        "Product Code": item.sku,
+        "Product Name": item.productName,
+        "Barcode": item.barcode || "-",
+        "Qty": item.quantity,
+        "Pickup Completed Date": idx === 0 ? formatDT(order.completedAt) : "",
+        "Cancel Date": idx === 0 ? formatDT(order.cancelledAt) : "",
+      }))
+    )
+
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Store Pickup List")
+
+    // Auto column widths
+    const colWidths = Object.keys(rows[0] || {}).map((key) => ({
+      wch: Math.max(key.length, ...rows.map((r) => String((r as Record<string, unknown>)[key] ?? "").length)) + 2,
+    }))
+    ws["!cols"] = colWidths
+
+    XLSX.writeFile(wb, `Store_Pickup_List_${format(new Date(), "yyyyMMdd_HHmm")}.xlsx`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-right" />
@@ -285,6 +341,7 @@ export default function POSOnlinePickupPage() {
                   </Button>
                   <Button
                     variant="outline"
+                    onClick={handleDownload}
                     className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
                   >
                     <Download className="h-4 w-4" />

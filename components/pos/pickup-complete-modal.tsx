@@ -21,7 +21,8 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import type { PickupOrder } from "@/lib/types"
 import { format } from "date-fns"
-import { CheckCircle, Package } from "lucide-react"
+import { toast } from "sonner"
+import { CheckCircle, Package, Printer } from "lucide-react"
 
 interface PickupCompleteModalProps {
   order: PickupOrder | null
@@ -41,6 +42,7 @@ export function PickupCompleteModal({
   onConfirm,
 }: PickupCompleteModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(false)
 
   if (!order) return null
 
@@ -48,17 +50,30 @@ export function PickupCompleteModal({
     setIsLoading(true)
     try {
       await onConfirm(order.id)
-      onOpenChange(false)
+      setIsCompleted(true)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleSerialPrint = () => {
+    toast.success("Serial Print", {
+      description: `Serial card printed for order ${order.orderNumber}.`,
+    })
+    setIsCompleted(false)
+    onOpenChange(false)
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) setIsCompleted(false)
+    onOpenChange(open)
+  }
+
   const totalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-3xl">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="!max-w-3xl outline-none">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-primary" />
@@ -96,8 +111,7 @@ export function PickupCompleteModal({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="text-xs">Product Code</TableHead>
-                    <TableHead className="text-xs">Product Name</TableHead>
+                    <TableHead className="text-xs">Product Code | Product Name</TableHead>
                     <TableHead className="text-xs text-center">Qty</TableHead>
                     <TableHead className="text-xs text-right">Unit Price</TableHead>
                     <TableHead className="text-xs text-right">Total</TableHead>
@@ -106,8 +120,11 @@ export function PickupCompleteModal({
                 <TableBody>
                   {order.items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono text-sm">{item.sku}</TableCell>
-                      <TableCell className="text-sm">{item.productName}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-mono">{item.sku}</span>
+                        <span className="text-muted-foreground mx-1.5">|</span>
+                        {item.productName}
+                      </TableCell>
                       <TableCell className="text-sm text-center">{item.quantity}</TableCell>
                       <TableCell className="text-sm text-right">{formatCurrency(item.unitPrice)}</TableCell>
                       <TableCell className="text-sm text-right">{formatCurrency(item.totalPrice)}</TableCell>
@@ -130,19 +147,26 @@ export function PickupCompleteModal({
         </div>
 
         <DialogFooter>
-          <Button onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Pickup Complete
-              </>
-            )}
-          </Button>
+          {isCompleted ? (
+            <Button onClick={handleSerialPrint} className="gap-2">
+              <Printer className="h-4 w-4" />
+              Serial Print
+            </Button>
+          ) : (
+            <Button onClick={handleConfirm} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Pickup Complete
+                </>
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
