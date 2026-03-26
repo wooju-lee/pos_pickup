@@ -9,11 +9,19 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import type { PickupOrder } from "@/lib/types"
-import { CheckCircle, Package, User } from "lucide-react"
+import { format } from "date-fns"
+import { CheckCircle, Package } from "lucide-react"
 
 interface PickupCompleteModalProps {
   order: PickupOrder | null
@@ -23,10 +31,7 @@ interface PickupCompleteModalProps {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-  }).format(amount)
+  return `${new Intl.NumberFormat("en-US").format(amount)} USD`
 }
 
 export function PickupCompleteModal({
@@ -49,84 +54,92 @@ export function PickupCompleteModal({
     }
   }
 
+  const totalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="!max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-primary" />
-            픽업 완료 처리
+            Pickup Complete
           </DialogTitle>
           <DialogDescription>
-            고객에게 상품을 전달하고 픽업 완료 처리합니다.
+            Confirm the product handover and complete the pickup process.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* 주문 요약 */}
+          {/* Order Info */}
           <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">주문번호</span>
-              <span className="font-mono text-primary">{order.orderNumber}</span>
+              <span className="text-sm text-muted-foreground">Order No.</span>
+              <span className="font-mono font-bold text-lg text-primary">{order.orderNumber}</span>
             </div>
-            <Separator />
-            <div className="flex items-center gap-3">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="font-medium">{order.customerName}</p>
-                <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Order Date</span>
+              <span className="text-sm">{order.orderDate}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Pickup Date</span>
+              <span className="text-sm">{format(new Date(order.pickupDate), "yyyy-MM-dd")}</span>
             </div>
           </div>
 
-          {/* 상품 목록 */}
+          {/* Product List */}
           <div className="space-y-2">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <Package className="h-4 w-4" />
-              인도 상품
+              Product List
             </h4>
-            <div className="space-y-2">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 text-sm"
-                >
-                  <span>{item.productName}</span>
-                  <span className="text-muted-foreground">x{item.quantity}</span>
-                </div>
-              ))}
+            <div className="border border-border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-xs">Product Code</TableHead>
+                    <TableHead className="text-xs">Product Name</TableHead>
+                    <TableHead className="text-xs text-center">Qty</TableHead>
+                    <TableHead className="text-xs text-right">Unit Price</TableHead>
+                    <TableHead className="text-xs text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {order.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-mono text-sm">{item.sku}</TableCell>
+                      <TableCell className="text-sm">{item.productName}</TableCell>
+                      <TableCell className="text-sm text-center">{item.quantity}</TableCell>
+                      <TableCell className="text-sm text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                      <TableCell className="text-sm text-right">{formatCurrency(item.totalPrice)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </div>
 
-          {/* 결제 금액 */}
+          {/* Total Amount */}
           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
             <div className="flex items-center justify-between">
-              <span className="font-medium">결제 완료 금액</span>
+              <span className="font-medium">Total Amount</span>
               <span className="text-xl font-bold text-primary">
-                {formatCurrency(order.paidAmount)}
+                {formatCurrency(totalAmount)}
               </span>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            취소
-          </Button>
+        <DialogFooter>
           <Button onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Spinner className="mr-2 h-4 w-4" />
-                처리 중...
+                Processing...
               </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                픽업 완료
+                Pickup Complete
               </>
             )}
           </Button>

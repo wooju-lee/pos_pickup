@@ -16,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { PickupOrder } from "@/lib/types"
+import type { PickupOrder, PickupStatus } from "@/lib/types"
+import { cn } from "@/lib/utils"
 import { CheckCircle, XCircle, RotateCcw } from "lucide-react"
 
 interface OrderDetailModalProps {
@@ -26,6 +27,44 @@ interface OrderDetailModalProps {
   onPickupComplete: (order: PickupOrder) => void
   onCancel: (order: PickupOrder) => void
   onReturn: (order: PickupOrder) => void
+}
+
+function StatusBadge({ status }: { status: PickupStatus }) {
+  const config: Record<PickupStatus, { label: string; className: string }> = {
+    waiting: {
+      label: "Waiting for Pickup",
+      className: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    },
+    ready: {
+      label: "Ready for Pickup",
+      className: "bg-sky-50 text-sky-600 border-sky-200",
+    },
+    completed: {
+      label: "Completed",
+      className: "bg-emerald-50 text-emerald-600 border-emerald-200",
+    },
+    cancelled: {
+      label: "Cancelled",
+      className: "bg-rose-50 text-rose-500 border-rose-200",
+    },
+    refunded: {
+      label: "Refunded",
+      className: "bg-amber-50 text-amber-600 border-amber-200",
+    },
+  }
+
+  const { label, className } = config[status]
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap",
+        className
+      )}
+    >
+      {label}
+    </span>
+  )
 }
 
 function formatCurrency(amount: number): string {
@@ -52,7 +91,10 @@ export function OrderDetailModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-lg font-semibold">Order Detail</DialogTitle>
+          <div className="flex items-center gap-3">
+            <DialogTitle className="text-lg font-semibold">Order Detail</DialogTitle>
+            <StatusBadge status={order.pickupStatus} />
+          </div>
           <DialogDescription className="sr-only">
             주문 상세 정보 및 픽업/취소/반품 처리
           </DialogDescription>

@@ -17,7 +17,8 @@ import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
 import { mockOrders, mockReturnRequests } from "@/lib/mock-data"
 import type { PickupOrder, PickupStatus, InventoryLocation, ReturnRequest } from "@/lib/types"
-import { RotateCcw, Download } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { RotateCcw, Download, QrCode, Search } from "lucide-react"
 
 export default function POSOnlinePickupPage() {
   const [activeTab, setActiveTab] = useState("store-pickup")
@@ -40,6 +41,8 @@ export default function POSOnlinePickupPage() {
   const [isPickupOpen, setIsPickupOpen] = useState(false)
   const [isCancelOpen, setIsCancelOpen] = useState(false)
   const [isReturnOpen, setIsReturnOpen] = useState(false)
+  const [qrScanValue, setQrScanValue] = useState("")
+  const [qrScanError, setQrScanError] = useState<string | null>(null)
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
@@ -93,6 +96,23 @@ export default function POSOnlinePickupPage() {
   }, [filteredOrders, currentPage, rowsPerPage])
 
   const totalPages = Math.ceil(filteredOrders.length / rowsPerPage) || 1
+
+  // QR scan lookup
+  const handleQrScan = () => {
+    if (!qrScanValue.trim()) return
+    const query = qrScanValue.trim()
+    const found = orders.find(
+      (o) => o.orderNumber === query || o.pickupQrCode === query
+    )
+    if (found) {
+      setSelectedOrder(found)
+      setIsDetailOpen(true)
+      setQrScanValue("")
+      setQrScanError(null)
+    } else {
+      setQrScanError("No matching order found.")
+    }
+  }
 
   // View detail
   const handleViewDetail = (order: PickupOrder) => {
@@ -206,6 +226,45 @@ export default function POSOnlinePickupPage() {
                 pickupStatuses={pickupStatuses}
                 onPickupStatusesChange={setPickupStatuses}
               />
+
+              {/* Divider */}
+              <div className="border-t border-border" />
+
+              {/* QR Scan */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <QrCode className="h-4 w-4" />
+                  <span>Pickup QR Scan</span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 max-w-md">
+                  <Input
+                    placeholder="Scan or enter Order No. / Pickup QR Code"
+                    value={qrScanValue}
+                    onChange={(e) => {
+                      setQrScanValue(e.target.value)
+                      setQrScanError(null)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleQrScan()
+                      }
+                    }}
+                    className="font-mono text-xs placeholder:text-gray-300"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={handleQrScan}
+                    disabled={!qrScanValue.trim()}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                {qrScanError && (
+                  <p className="text-sm text-destructive">{qrScanError}</p>
+                )}
+              </div>
 
               {/* Divider */}
               <div className="border-t border-border" />

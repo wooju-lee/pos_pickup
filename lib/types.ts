@@ -61,6 +61,7 @@ export interface PickupOrder {
   pickupStatus: PickupStatus
   approvalStatus: ApprovalStatus
   processingStatus: ProcessingStatus
+  pickupQrCode?: string
   returnQrCode?: string
   cancelledAt?: string
   completedAt?: string

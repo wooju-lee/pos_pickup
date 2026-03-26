@@ -93,6 +93,7 @@ export function OrderTable({
             </TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Pickup Completed Date</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Cancel Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -143,11 +144,14 @@ export function OrderTable({
                 <TableCell className="text-sm text-center py-4 whitespace-nowrap">
                   {formatDateTime(order.completedAt)}
                 </TableCell>
+                <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                  {formatDateTime(order.cancelledAt)}
+                </TableCell>
               </TableRow>
           ))}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+              <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                 No orders found.
               </TableCell>
             </TableRow>

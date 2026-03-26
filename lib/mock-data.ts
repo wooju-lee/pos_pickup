@@ -41,6 +41,7 @@ export const mockOrders: PickupOrder[] = [
     pickupStatus: "waiting",
     approvalStatus: "unready",
     processingStatus: "pending",
+    pickupQrCode: "PU-20260301-001",
   },
   {
     id: "2",
@@ -82,6 +83,7 @@ export const mockOrders: PickupOrder[] = [
     pickupStatus: "ready",
     approvalStatus: "unready",
     processingStatus: "pending",
+    pickupQrCode: "PU-20260302-002",
   },
   {
     id: "3",
@@ -123,6 +125,7 @@ export const mockOrders: PickupOrder[] = [
     pickupStatus: "ready",
     approvalStatus: "unready",
     processingStatus: "pending",
+    pickupQrCode: "PU-20260303-003",
   },
   {
     id: "4",
@@ -165,6 +168,7 @@ export const mockOrders: PickupOrder[] = [
     approvalStatus: "unready",
     processingStatus: "completed",
     completedAt: "2026-03-17T10:15:00",
+    pickupQrCode: "PU-20260304-004",
   },
   {
     id: "5",
@@ -208,6 +212,7 @@ export const mockOrders: PickupOrder[] = [
     processingStatus: "cancelled",
     cancelledAt: "2026-03-12T16:45:00",
     inventoryLocation: "store_online",
+    pickupQrCode: "PU-20260305-005",
   },
   {
     id: "6",
@@ -250,6 +255,7 @@ export const mockOrders: PickupOrder[] = [
     approvalStatus: "unready",
     processingStatus: "cancelled",
     cancelledAt: "2026-03-14T10:00:00",
+    pickupQrCode: "PU-20260306-006",
   },
   {
     id: "7",
@@ -292,6 +298,7 @@ export const mockOrders: PickupOrder[] = [
     approvalStatus: "request",
     processingStatus: "completed",
     completedAt: "2026-03-17T14:00:00",
+    pickupQrCode: "PU-20260307-007",
   },
   {
     id: "8",
@@ -334,6 +341,7 @@ export const mockOrders: PickupOrder[] = [
     approvalStatus: "confirm",
     processingStatus: "completed",
     completedAt: "2026-03-17T15:30:00",
+    pickupQrCode: "PU-20260308-008",
   },
   {
     id: "9",
@@ -376,6 +384,7 @@ export const mockOrders: PickupOrder[] = [
     approvalStatus: "confirm",
     processingStatus: "completed",
     completedAt: "2026-03-17T16:00:00",
+    pickupQrCode: "PU-20260309-009",
   },
 ]
 
