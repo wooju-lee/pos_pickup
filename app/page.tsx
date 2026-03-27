@@ -8,7 +8,6 @@ import { OrderFilters } from "@/components/pos/order-filters"
 import { OrderTable } from "@/components/pos/order-table"
 import { Pagination } from "@/components/pos/pagination"
 import { OrderDetailModal } from "@/components/pos/order-detail-modal"
-import { PickupCompleteModal } from "@/components/pos/pickup-complete-modal"
 import { CancelModal } from "@/components/pos/cancel-modal"
 import { ReturnModal } from "@/components/pos/return-modal"
 import { POSMain } from "@/components/pos/pos-main"
@@ -40,7 +39,6 @@ export default function POSOnlinePickupPage() {
   // Modal states
   const [selectedOrder, setSelectedOrder] = useState<PickupOrder | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isPickupOpen, setIsPickupOpen] = useState(false)
   const [isCancelOpen, setIsCancelOpen] = useState(false)
   const [isReturnOpen, setIsReturnOpen] = useState(false)
   const [qrScanValue, setQrScanValue] = useState("")
@@ -198,8 +196,8 @@ export default function POSOnlinePickupPage() {
   // Download Excel
   const handleDownload = () => {
     const statusLabels: Record<PickupStatus, string> = {
-      waiting: "Waiting for Pickup",
-      ready: "Ready for Pickup",
+      waiting: "Waiting for Arrival",
+      ready: "Pickup Available",
       completed: "Completed",
       cancelled: "Cancelled",
       refunded: "Refunded",
@@ -378,10 +376,9 @@ export default function POSOnlinePickupPage() {
         order={selectedOrder}
         open={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        onPickupComplete={(order) => {
+        onPickupComplete={async (order) => {
+          await handlePickupComplete(order.id)
           setIsDetailOpen(false)
-          setSelectedOrder(order)
-          setIsPickupOpen(true)
         }}
         onCancel={(order) => {
           setIsDetailOpen(false)
@@ -392,13 +389,6 @@ export default function POSOnlinePickupPage() {
           setIsDetailOpen(false)
           setIsReturnOpen(true)
         }}
-      />
-
-      <PickupCompleteModal
-        order={selectedOrder}
-        open={isPickupOpen}
-        onOpenChange={setIsPickupOpen}
-        onConfirm={handlePickupComplete}
       />
 
       <CancelModal

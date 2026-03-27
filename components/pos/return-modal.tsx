@@ -21,8 +21,8 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 const STATUS_CONFIG: Record<PickupStatus, { label: string; className: string }> = {
-  waiting: { label: "Waiting for Pickup", className: "bg-zinc-100 text-zinc-500 border-zinc-200" },
-  ready: { label: "Ready for Pickup", className: "bg-sky-50 text-sky-600 border-sky-200" },
+  waiting: { label: "Waiting for Arrival", className: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+  ready: { label: "Pickup Available", className: "bg-sky-50 text-sky-600 border-sky-200" },
   completed: { label: "Completed", className: "bg-emerald-50 text-emerald-600 border-emerald-200" },
   cancelled: { label: "Cancelled", className: "bg-rose-50 text-rose-500 border-rose-200" },
   refunded: { label: "Refunded", className: "bg-amber-50 text-amber-600 border-amber-200" },

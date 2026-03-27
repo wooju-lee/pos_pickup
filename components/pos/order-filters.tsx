@@ -18,8 +18,8 @@ import type { PickupStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const PICKUP_STATUS_OPTIONS: { value: PickupStatus; label: string }[] = [
-  { value: "waiting", label: "Waiting for Pickup" },
-  { value: "ready", label: "Ready for Pickup" },
+  { value: "waiting", label: "Waiting for Arrival" },
+  { value: "ready", label: "Pickup Available" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
   { value: "refunded", label: "Refunded" },

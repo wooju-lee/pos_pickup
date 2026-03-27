@@ -1,7 +1,7 @@
 import type { PickupOrder, ReturnRequest } from "./types"
 
 export const mockOrders: PickupOrder[] = [
-  // ── 1. Waiting for Pickup · 경고: 입고 미완료 (No Inbound) ──
+  // ── 1. Waiting for Arrival · 경고: 입고 미완료 (No Inbound) ──
   {
     id: "3",
     orderNumber: "ON_20260311003",
@@ -42,7 +42,7 @@ export const mockOrders: PickupOrder[] = [
     pickupQrCode: "PU-20260311-004",
   },
 
-  // ── 2. Ready for Pickup · 픽업일 기준 (입고 완료, 픽업일 이내) ──
+  // ── 2. Pickup Available · 픽업일 기준 (입고 완료, 픽업일 이내) ──
   {
     id: "1",
     orderNumber: "ON_20260310001",
@@ -122,7 +122,7 @@ export const mockOrders: PickupOrder[] = [
     pickupQrCode: "PU-20260312-006",
   },
 
-  // ── 4. Ready for Pickup · 입고일 기준 (입고가 픽업일 이후 — 경고 하이라이트) ──
+  // ── 4. Pickup Available · 입고일 기준 (입고가 픽업일 이후 — 경고 하이라이트) ──
   {
     id: "7",
     orderNumber: "ON_20260313007",

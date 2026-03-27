@@ -36,11 +36,11 @@ interface OrderTableProps {
 function StatusBadge({ status }: { status: PickupStatus }) {
   const config: Record<PickupStatus, { label: string; className: string }> = {
     waiting: {
-      label: "Waiting for Pickup",
+      label: "Waiting for Arrival",
       className: "bg-zinc-100 text-zinc-500 border-zinc-200",
     },
     ready: {
-      label: "Ready for Pickup",
+      label: "Pickup Available",
       className: "bg-sky-50 text-sky-600 border-sky-200",
     },
     completed: {

@@ -32,11 +32,11 @@ interface OrderDetailModalProps {
 function StatusBadge({ status }: { status: PickupStatus }) {
   const config: Record<PickupStatus, { label: string; className: string }> = {
     waiting: {
-      label: "Waiting for Pickup",
+      label: "Waiting for Arrival",
       className: "bg-zinc-100 text-zinc-500 border-zinc-200",
     },
     ready: {
-      label: "Ready for Pickup",
+      label: "Pickup Available",
       className: "bg-sky-50 text-sky-600 border-sky-200",
     },
     completed: {
@@ -68,10 +68,7 @@ function StatusBadge({ status }: { status: PickupStatus }) {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-  }).format(amount)
+  return `${new Intl.NumberFormat("en-US").format(amount)} USD`
 }
 
 export function OrderDetailModal({
@@ -85,7 +82,8 @@ export function OrderDetailModal({
   if (!order) return null
 
   const canProcess = order.status === "pending" || order.status === "ready"
-  const canReturn = order.status === "completed"
+  const canPickup = canProcess && !!order.inboundDate
+  const totalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -126,6 +124,8 @@ export function OrderDetailModal({
                   <TableRow className="bg-muted/50">
                     <TableHead>Product Code | Product Name</TableHead>
                     <TableHead className="text-center">Qty</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -137,6 +137,8 @@ export function OrderDetailModal({
                         {item.productName}
                       </TableCell>
                       <TableCell className="text-center">{item.quantity}</TableCell>
+                      <TableCell className="text-sm text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                      <TableCell className="text-sm text-right">{formatCurrency(item.totalPrice)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -144,24 +146,42 @@ export function OrderDetailModal({
             </div>
           </div>
 
+          {/* Total Amount */}
+          <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Total Amount</span>
+              <span className="text-xl font-bold text-primary">
+                {formatCurrency(totalAmount)}
+              </span>
+            </div>
+          </div>
+
           {/* Action Buttons - only for pending/ready orders */}
           {canProcess && (
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                variant="destructive"
-                onClick={() => onCancel(order)}
-                className="gap-2"
-              >
-                <XCircle className="h-4 w-4" />
-                Cancel Order
-              </Button>
-              <Button
-                onClick={() => onPickupComplete(order)}
-                className="gap-2"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Pickup Complete
-              </Button>
+            <div className="space-y-2 pt-4">
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="destructive"
+                  onClick={() => onCancel(order)}
+                  className="gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel Order
+                </Button>
+                <Button
+                  onClick={() => onPickupComplete(order)}
+                  disabled={!canPickup}
+                  className="gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Pickup Complete
+                </Button>
+              </div>
+              {!canPickup && (
+                <p className="text-xs text-muted-foreground text-right">
+                  Pickup completion is unavailable because inbound has not been completed.
+                </p>
+              )}
             </div>
           )}
         </div>

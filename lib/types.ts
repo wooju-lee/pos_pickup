@@ -12,8 +12,8 @@ export type ProcessingStatus =
   | "cancelled"         // 취소
 
 export type PickupStatus =
-  | "waiting"      // Waiting for Pickup (픽업 주문 대기)
-  | "ready"        // Ready for Pickup (고객 픽업 대기)
+  | "waiting"      // Waiting for Arrival (픽업 주문 대기)
+  | "ready"        // Pickup Available (고객 픽업 대기)
   | "completed"    // Completed (픽업 완료)
   | "cancelled"    // Cancelled (취소)
   | "refunded"     // Refunded (반품)
