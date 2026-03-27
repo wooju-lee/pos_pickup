@@ -140,7 +140,7 @@ export default function POSOnlinePickupPage() {
       )
     )
     toast.success("Pickup Complete", {
-      description: "Order has been marked as picked up.",
+      description: "Pickup has been completed. AC card (serial card) is now printing.",
     })
   }
 

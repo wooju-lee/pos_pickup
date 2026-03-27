@@ -21,8 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import type { PickupOrder } from "@/lib/types"
 import { format } from "date-fns"
-import { toast } from "sonner"
-import { CheckCircle, Package, Printer } from "lucide-react"
+import { CheckCircle, Package } from "lucide-react"
 
 interface PickupCompleteModalProps {
   order: PickupOrder | null
@@ -42,7 +41,6 @@ export function PickupCompleteModal({
   onConfirm,
 }: PickupCompleteModalProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [isCompleted, setIsCompleted] = useState(false)
 
   if (!order) return null
 
@@ -50,29 +48,16 @@ export function PickupCompleteModal({
     setIsLoading(true)
     try {
       await onConfirm(order.id)
-      setIsCompleted(true)
+      onOpenChange(false)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSerialPrint = () => {
-    toast.success("Serial Print", {
-      description: `Serial card printed for order ${order.orderNumber}.`,
-    })
-    setIsCompleted(false)
-    onOpenChange(false)
-  }
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) setIsCompleted(false)
-    onOpenChange(open)
-  }
-
   const totalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-3xl outline-none">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -147,26 +132,19 @@ export function PickupCompleteModal({
         </div>
 
         <DialogFooter>
-          {isCompleted ? (
-            <Button onClick={handleSerialPrint} className="gap-2">
-              <Printer className="h-4 w-4" />
-              Serial Print
-            </Button>
-          ) : (
-            <Button onClick={handleConfirm} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Spinner className="mr-2 h-4 w-4" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Pickup Complete
-                </>
-              )}
-            </Button>
-          )}
+          <Button onClick={handleConfirm} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Pickup Complete
+              </>
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
