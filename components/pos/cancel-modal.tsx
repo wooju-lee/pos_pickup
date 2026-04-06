@@ -12,9 +12,26 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import type { PickupOrder, InventoryLocation } from "@/lib/types"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { XCircle, Package, MapPin } from "lucide-react"
+
+const CANCEL_REASONS = [
+  { value: "customer_request", label: "Customer Request" },
+  { value: "not_picked_up", label: "Not Picked Up (Expired)" },
+  { value: "product_issue", label: "Product Issue / Defect" },
+  { value: "wrong_order", label: "Wrong Order" },
+  { value: "other", label: "Other" },
+]
 
 interface CancelModalProps {
   order: PickupOrder | null
@@ -31,15 +48,20 @@ export function CancelModal({
 }: CancelModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [location, setLocation] = useState<InventoryLocation>("store_sales")
+  const [reason, setReason] = useState("")
+  const [reasonDetail, setReasonDetail] = useState("")
 
   if (!order) return null
 
   const handleConfirm = async () => {
     setIsLoading(true)
     try {
-      await onConfirm(order.id, location)
+      const reasonText = reason === "other" ? reasonDetail : CANCEL_REASONS.find(r => r.value === reason)?.label
+      await onConfirm(order.id, location, reasonText)
       onOpenChange(false)
       setLocation("store_sales")
+      setReason("")
+      setReasonDetail("")
     } finally {
       setIsLoading(false)
     }
@@ -47,7 +69,7 @@ export function CancelModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md text-left">
+      <DialogContent className="sm:max-w-4xl text-left">
         <DialogHeader className="text-left">
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <XCircle className="h-5 w-5" />
@@ -58,24 +80,35 @@ export function CancelModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-10">
           {/* Order Info */}
-          <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Order No.</span>
-              <span className="font-mono text-primary">{order.orderNumber}</span>
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-primary">Cancel Information</span>
             </div>
-            <div className="space-y-1">
+            <Separator />
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <div>
+                <p className="text-muted-foreground text-xs">Order No.</p>
+                <p className="font-mono font-medium">{order.orderNumber}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Customer</p>
+                <p className="font-medium">{order.customerName}</p>
+              </div>
+            </div>
+            {/* Cancel Items */}
+            <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Cancel Items</p>
               <div className="rounded border border-border overflow-hidden">
-                <div className="grid grid-cols-[1fr_auto] gap-4 px-3 py-1.5 bg-secondary/50 text-xs font-medium text-muted-foreground">
+                <div className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 bg-secondary/50 text-xs font-medium text-muted-foreground">
                   <span>Product (Code / Name)</span>
                   <span className="text-center">Qty</span>
                 </div>
                 {order.items.map((item) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_auto] gap-4 px-3 py-1.5 text-sm border-t border-border"
+                    className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 text-sm border-t border-border"
                   >
                     <span>{item.sku} / {item.productName}</span>
                     <span className="text-center">{item.quantity}</span>
@@ -83,6 +116,35 @@ export function CancelModal({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Cancel Reason */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              Cancel Reason
+            </Label>
+            <Select value={reason} onValueChange={setReason}>
+              <SelectTrigger className="w-full bg-secondary border-border text-foreground">
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {CANCEL_REASONS.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {reason === "other" && (
+              <Textarea
+                placeholder="Please enter the reason for cancellation"
+                value={reasonDetail}
+                onChange={(e) => setReasonDetail(e.target.value)}
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground resize-none"
+                rows={3}
+              />
+            )}
           </div>
 
           {/* Inventory Location */}
@@ -104,10 +166,9 @@ export function CancelModal({
                 <div className="flex-1">
                   <p className="font-medium">Add to Store Inventory</p>
                   <p className="text-sm text-muted-foreground">
-                    Add inventory to Store Sales location
+                    Inventory will be added to <span className="font-medium text-foreground">Store Sales</span> location
                   </p>
                 </div>
-                <Package className="h-5 w-5 text-muted-foreground" />
               </label>
               <label
                 htmlFor="store_online"
@@ -117,10 +178,9 @@ export function CancelModal({
                 <div className="flex-1">
                   <p className="font-medium">Return to Online</p>
                   <p className="text-sm text-muted-foreground">
-                    Process return to Store Online location
+                    Inventory will be returned to <span className="font-medium text-foreground">Store Online</span> location
                   </p>
                 </div>
-                <Package className="h-5 w-5 text-muted-foreground" />
               </label>
             </RadioGroup>
           </div>
@@ -130,7 +190,7 @@ export function CancelModal({
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={isLoading}
+            disabled={isLoading || !reason || (reason === "other" && !reasonDetail.trim())}
           >
             {isLoading ? (
               <>

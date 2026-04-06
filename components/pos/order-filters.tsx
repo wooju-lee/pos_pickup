@@ -86,7 +86,7 @@ export function OrderFilters({
           </label>
           <div className="flex items-center gap-2">
             <Select value={dateType} onValueChange={onDateTypeChange}>
-              <SelectTrigger className="w-[130px] h-10 bg-secondary border-border text-foreground">
+              <SelectTrigger style={{ height: 40 }} className="w-[130px] bg-secondary border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -109,19 +109,20 @@ export function OrderFilters({
                   {startDate ? format(startDate, "yyyy-MM-dd") : "Start"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
+              <PopoverContent style={{ width: 195 }} className="p-0 bg-popover border-border" align="start">
                 <Calendar
                   mode="single"
                   selected={startDate}
                   onSelect={onStartDateChange}
                   locale={ko}
                   initialFocus
+                  className="[--cell-size:24px] p-2 w-full"
                 />
               </PopoverContent>
             </Popover>
-            
+
             <span className="text-muted-foreground">~</span>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -133,13 +134,14 @@ export function OrderFilters({
                   {endDate ? format(endDate, "yyyy-MM-dd") : "End"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
+              <PopoverContent style={{ width: 195 }} className="p-0 bg-popover border-border" align="start">
                 <Calendar
                   mode="single"
                   selected={endDate}
                   onSelect={onEndDateChange}
                   locale={ko}
                   initialFocus
+                  className="[--cell-size:24px] p-2 w-full"
                 />
               </PopoverContent>
             </Popover>
