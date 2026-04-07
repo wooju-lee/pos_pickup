@@ -48,8 +48,8 @@ function StatusBadge({ status }: { status: PickupStatus }) {
       className: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
     cancelled: {
-      label: "Waiting for Arrival",
-      className: "bg-zinc-100 text-zinc-500 border-zinc-200",
+      label: "Cancelled",
+      className: "bg-rose-50 text-rose-500 border-rose-200",
     },
     refunded: {
       label: "Completed",
@@ -72,13 +72,6 @@ function StatusBadge({ status }: { status: PickupStatus }) {
 }
 
 function CancelRefundBadge({ order }: { order: PickupOrder }) {
-  if (order.pickupStatus === "cancelled") {
-    return (
-      <span className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap bg-rose-50 text-rose-500 border-rose-200">
-        Cancel
-      </span>
-    )
-  }
   if (order.pickupStatus === "refunded") {
     return (
       <span className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap bg-amber-50 text-amber-600 border-amber-200">
@@ -131,7 +124,7 @@ export function OrderTable({
             </TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Order No.</TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Pickup Status</TableHead>
-            <TableHead className="font-semibold text-foreground text-center h-14">Cancel / Refund</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Refund</TableHead>
             <TableHead className="font-semibold text-foreground h-14">
               <div>Product Info</div>
               <div className="text-xs font-normal text-muted-foreground">(Code / Name / Barcode)</div>
