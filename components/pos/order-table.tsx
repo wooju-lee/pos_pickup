@@ -48,12 +48,12 @@ function StatusBadge({ status }: { status: PickupStatus }) {
       className: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
     cancelled: {
-      label: "Cancelled",
-      className: "bg-rose-50 text-rose-500 border-rose-200",
+      label: "Waiting for Arrival",
+      className: "bg-zinc-100 text-zinc-500 border-zinc-200",
     },
     refunded: {
-      label: "Refunded",
-      className: "bg-amber-50 text-amber-600 border-amber-200",
+      label: "Completed",
+      className: "bg-emerald-50 text-emerald-600 border-emerald-200",
     },
   }
 
@@ -69,6 +69,24 @@ function StatusBadge({ status }: { status: PickupStatus }) {
       {label}
     </span>
   )
+}
+
+function CancelRefundBadge({ order }: { order: PickupOrder }) {
+  if (order.pickupStatus === "cancelled") {
+    return (
+      <span className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap bg-rose-50 text-rose-500 border-rose-200">
+        Cancel
+      </span>
+    )
+  }
+  if (order.pickupStatus === "refunded") {
+    return (
+      <span className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap bg-amber-50 text-amber-600 border-amber-200">
+        Refund
+      </span>
+    )
+  }
+  return <span className="text-sm text-muted-foreground">-</span>
 }
 
 export function OrderTable({
@@ -111,8 +129,9 @@ export function OrderTable({
                 </Tooltip>
               </div>
             </TableHead>
-            <TableHead className="font-semibold text-foreground text-center h-14">Pickup Status</TableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Order No.</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Pickup Status</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Cancel / Refund</TableHead>
             <TableHead className="font-semibold text-foreground h-14">
               <div>Product Info</div>
               <div className="text-xs font-normal text-muted-foreground">(Code / Name / Barcode)</div>
@@ -162,13 +181,16 @@ export function OrderTable({
                     <div className="text-[10px] text-rose-500 mt-0.5">After Pickup Date</div>
                   )}
                 </TableCell>
-                <TableCell className="text-center py-4">
-                  <StatusBadge status={order.pickupStatus} />
-                </TableCell>
                 <TableCell className="text-sm text-center font-mono py-4">
                   <span className="text-blue-600 underline underline-offset-2 hover:text-blue-800">
                     {order.orderNumber}
                   </span>
+                </TableCell>
+                <TableCell className="text-center py-4">
+                  <StatusBadge status={order.pickupStatus} />
+                </TableCell>
+                <TableCell className="text-center py-4">
+                  <CancelRefundBadge order={order} />
                 </TableCell>
                 <TableCell className="py-4">
                   <div className="space-y-1">
@@ -199,7 +221,7 @@ export function OrderTable({
           })}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
+              <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
                 No orders found.
               </TableCell>
             </TableRow>

@@ -30,7 +30,7 @@ export default function POSOnlinePickupPage() {
   const [dateType, setDateType] = useState("order")
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
-  const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed", "cancelled", "refunded"])
+  const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed"])
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -62,7 +62,7 @@ export default function POSOnlinePickupPage() {
       }
 
       // Pickup status filter (multi-select)
-      if (pickupStatuses.length > 0 && pickupStatuses.length < 5 && !pickupStatuses.includes(order.pickupStatus)) {
+      if (pickupStatuses.length > 0 && pickupStatuses.length < 3 && !pickupStatuses.includes(order.pickupStatus)) {
         return false
       }
 
