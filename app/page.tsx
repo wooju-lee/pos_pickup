@@ -6,50 +6,88 @@ import { Header } from "@/components/pos/header"
 import { TabNavigation } from "@/components/pos/tab-navigation"
 import { OrderFilters } from "@/components/pos/order-filters"
 import { OrderTable } from "@/components/pos/order-table"
+import type { TableVariant } from "@/components/pos/order-table"
 import { Pagination } from "@/components/pos/pagination"
 import { OrderDetailModal } from "@/components/pos/order-detail-modal"
-import { CancelModal } from "@/components/pos/cancel-modal"
 import { ReturnModal } from "@/components/pos/return-modal"
 import { POSMain } from "@/components/pos/pos-main"
 import { Button } from "@/components/ui/button"
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
 import { mockOrders, mockReturnRequests } from "@/lib/mock-data"
-import type { PickupOrder, PickupStatus, InventoryLocation, ReturnRequest } from "@/lib/types"
+import type { PickupOrder, PickupStatus, InventoryLocation, ReturnGrading, ReturnRequest } from "@/lib/types"
 import { Input } from "@/components/ui/input"
-import { RotateCcw, Download, QrCode, Search } from "lucide-react"
+import { RotateCcw, Download, QrCode, Search, Package, Ban, CornerDownLeft } from "lucide-react"
 import * as XLSX from "xlsx"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+
+type PickupSubTab = "pickup" | "cancel" | "refund"
 
 export default function POSOnlinePickupPage() {
   const [activeTab, setActiveTab] = useState("store-pickup")
   const [orders, setOrders] = useState<PickupOrder[]>(mockOrders)
-  
-  // Filter states
+
+  // Sub-tab state
+  const [pickupSubTab, setPickupSubTab] = useState<PickupSubTab>("pickup")
+
+  // Filter states (draft = UI inputs, applied = actually used for filtering)
   const [searchQuery, setSearchQuery] = useState("")
   const [dateType, setDateType] = useState("order")
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
-  const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed", "cancelled"])
-  
+  const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed"])
+
+  // Applied filter states (committed on Search click)
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("")
+  const [appliedDateType, setAppliedDateType] = useState("order")
+  const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
+  const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(new Date())
+  const [appliedPickupStatuses, setAppliedPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed"])
+
+  // Sort states
+  const [sortKey, setSortKey] = useState<string>("orderDate")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(30)
-  
+
   // Modal states
   const [selectedOrder, setSelectedOrder] = useState<PickupOrder | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isCancelOpen, setIsCancelOpen] = useState(false)
   const [isReturnOpen, setIsReturnOpen] = useState(false)
   const [qrScanValue, setQrScanValue] = useState("")
   const [qrScanError, setQrScanError] = useState<string | null>(null)
 
-  // Filtered orders
+  // Orders filtered by sub-tab
+  const tabFilteredOrders = useMemo(() => {
+    switch (pickupSubTab) {
+      case "cancel":
+        return orders.filter((o) => o.status === "cancelled")
+      case "refund":
+        return orders.filter((o) => o.status === "returned")
+      default:
+        return orders.filter((o) => o.status !== "cancelled" && o.status !== "returned")
+    }
+  }, [orders, pickupSubTab])
+
+  // Apply filters (committed on Search click)
+  const handleSearch = () => {
+    setAppliedSearchQuery(searchQuery)
+    setAppliedDateType(dateType)
+    setAppliedStartDate(startDate)
+    setAppliedEndDate(endDate)
+    setAppliedPickupStatuses(pickupStatuses)
+    setCurrentPage(1)
+  }
+
+  // Filtered orders (uses applied states only)
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    return tabFilteredOrders.filter((order) => {
       // Search filter
-      if (searchQuery.length >= 2) {
-        const query = searchQuery.toLowerCase()
+      if (appliedSearchQuery.length >= 2) {
+        const query = appliedSearchQuery.toLowerCase()
         const matchesSearch =
           order.orderNumber.toLowerCase().includes(query) ||
           order.customerName.toLowerCase().includes(query) ||
@@ -61,15 +99,15 @@ export default function POSOnlinePickupPage() {
         if (!matchesSearch) return false
       }
 
-      // Pickup status filter (multi-select)
-      if (pickupStatuses.length > 0 && pickupStatuses.length < 4 && !pickupStatuses.includes(order.pickupStatus)) {
+      // Pickup status filter (only for pickup tab)
+      if (pickupSubTab === "pickup" && appliedPickupStatuses.length > 0 && appliedPickupStatuses.length < 3 && !appliedPickupStatuses.includes(order.pickupStatus)) {
         return false
       }
 
       // Date range filter
-      if (startDate || endDate) {
+      if (appliedStartDate || appliedEndDate) {
         let dateValue: string | undefined
-        switch (dateType) {
+        switch (appliedDateType) {
           case "order": dateValue = order.orderDate; break
           case "pickup": dateValue = order.pickupDate; break
           case "outbound": dateValue = order.outboundDate; break
@@ -78,24 +116,74 @@ export default function POSOnlinePickupPage() {
         }
         if (dateValue) {
           const d = new Date(dateValue)
-          if (startDate && d < new Date(startDate.toDateString())) return false
-          if (endDate && d > new Date(new Date(endDate).setHours(23, 59, 59, 999))) return false
-        } else if (startDate || endDate) {
+          if (appliedStartDate && d < new Date(appliedStartDate.toDateString())) return false
+          if (appliedEndDate && d > new Date(new Date(appliedEndDate).setHours(23, 59, 59, 999))) return false
+        } else if (appliedStartDate || appliedEndDate) {
           return false
         }
       }
 
       return true
     })
-  }, [orders, searchQuery, pickupStatuses, dateType, startDate, endDate])
+  }, [tabFilteredOrders, appliedSearchQuery, appliedPickupStatuses, pickupSubTab, appliedDateType, appliedStartDate, appliedEndDate])
+
+  // Sorted orders
+  const sortedOrders = useMemo(() => {
+    const sorted = [...filteredOrders]
+    sorted.sort((a, b) => {
+      let aVal: string | number = ""
+      let bVal: string | number = ""
+
+      switch (sortKey) {
+        case "orderDate": aVal = a.orderDate || ""; bVal = b.orderDate || ""; break
+        case "pickupDate": aVal = a.pickupDate || ""; bVal = b.pickupDate || ""; break
+        case "outboundDate": aVal = a.outboundDate || ""; bVal = b.outboundDate || ""; break
+        case "inboundDate": aVal = a.inboundDate || ""; bVal = b.inboundDate || ""; break
+        case "orderNumber": aVal = a.orderNumber; bVal = b.orderNumber; break
+        case "completedAt": aVal = a.completedAt || ""; bVal = b.completedAt || ""; break
+        case "cancelledAt": aVal = a.cancelledAt || ""; bVal = b.cancelledAt || ""; break
+        case "cancelReason": aVal = a.cancelReason || a.notes || ""; bVal = b.cancelReason || b.notes || ""; break
+        case "returnedAt": aVal = a.returnedAt || ""; bVal = b.returnedAt || ""; break
+        case "returnReason": aVal = a.returnReason || ""; bVal = b.returnReason || ""; break
+        case "returnGrading": aVal = a.returnGrading || ""; bVal = b.returnGrading || ""; break
+        case "inventoryLocation": aVal = a.inventoryLocation || ""; bVal = b.inventoryLocation || ""; break
+        default: return 0
+      }
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1
+      return 0
+    })
+    return sorted
+  }, [filteredOrders, sortKey, sortDirection])
 
   // Paginated orders
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage
-    return filteredOrders.slice(start, start + rowsPerPage)
-  }, [filteredOrders, currentPage, rowsPerPage])
+    return sortedOrders.slice(start, start + rowsPerPage)
+  }, [sortedOrders, currentPage, rowsPerPage])
 
-  const totalPages = Math.ceil(filteredOrders.length / rowsPerPage) || 1
+  const totalPages = Math.ceil(sortedOrders.length / rowsPerPage) || 1
+
+  // Sort handler
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortKey(key)
+      setSortDirection("desc")
+    }
+    setCurrentPage(1)
+  }
+
+  // Reset pagination when sub-tab changes
+  const handleSubTabChange = (tab: PickupSubTab) => {
+    setPickupSubTab(tab)
+    setCurrentPage(1)
+    setSearchQuery("")
+    setSortKey("orderDate")
+    setSortDirection("desc")
+  }
 
   // QR scan lookup
   const handleQrScan = () => {
@@ -142,8 +230,8 @@ export default function POSOnlinePickupPage() {
     })
   }
 
-  // Cancel order
-  const handleCancel = async (orderId: string, location: InventoryLocation, reason?: string) => {
+  // Cancel order (without inventory assignment - that's done later in cancel tab)
+  const handleCancel = async (orderId: string, reason?: string) => {
     await new Promise((resolve) => setTimeout(resolve, 500))
     setOrders((prev) =>
       prev.map((order) =>
@@ -151,18 +239,49 @@ export default function POSOnlinePickupPage() {
           ? {
               ...order,
               status: "cancelled" as const,
-              pickupStatus: "cancelled" as const,
               processingStatus: "cancelled" as const,
               approvalStatus: "reject" as const,
               cancelledAt: new Date().toISOString(),
-              inventoryLocation: location,
-              notes: reason,
+              cancelReason: reason,
             }
           : order
       )
     )
     toast.success("Order Cancelled", {
-      description: `Order cancelled. Inventory: ${location === "store_sales" ? "Store Sales" : "Store Online"}`,
+      description: "Order cancelled. Assign inventory from the Cancel tab.",
+    })
+  }
+
+  // Update inventory for cancelled order
+  const handleUpdateInventory = async (orderId: string, location: InventoryLocation) => {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? { ...order, inventoryLocation: location }
+          : order
+      )
+    )
+    // Update selected order for immediate UI feedback
+    setSelectedOrder((prev) => prev && prev.id === orderId ? { ...prev, inventoryLocation: location } : prev)
+    toast.success("Inventory Assigned", {
+      description: `Inventory assigned to ${location === "store" ? "Store" : "Omni Warehouse"}.`,
+    })
+  }
+
+  // Update refund grading + inventory
+  const handleUpdateRefund = async (orderId: string, grading: ReturnGrading, location: InventoryLocation) => {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? { ...order, returnGrading: grading, inventoryLocation: location }
+          : order
+      )
+    )
+    setSelectedOrder((prev) => prev && prev.id === orderId ? { ...prev, returnGrading: grading, inventoryLocation: location } : prev)
+    toast.success("Return Processed", {
+      description: `Grading: ${grading}, Inventory: ${location === "store" ? "Store" : "Omni Warehouse"}.`,
     })
   }
 
@@ -172,8 +291,8 @@ export default function POSOnlinePickupPage() {
     return mockReturnRequests[qrCode] || null
   }
 
-  // Process return
-  const handleProcessReturn = async (returnRequest: ReturnRequest, location: InventoryLocation) => {
+  // Process return (without inventory/grading - that's done in refund tab)
+  const handleProcessReturn = async (returnRequest: ReturnRequest) => {
     await new Promise((resolve) => setTimeout(resolve, 500))
     setOrders((prev) =>
       prev.map((order) =>
@@ -181,15 +300,13 @@ export default function POSOnlinePickupPage() {
           ? {
               ...order,
               status: "returned" as const,
-              pickupStatus: "refunded" as const,
               returnedAt: new Date().toISOString(),
-              inventoryLocation: location,
             }
           : order
       )
     )
-    toast.success("Return Completed", {
-      description: "The return has been processed and the order status has been updated to Refunded.",
+    toast.success("Return Processed", {
+      description: "Return processed. Set grading and assign inventory from the Refund tab.",
     })
   }
 
@@ -199,8 +316,6 @@ export default function POSOnlinePickupPage() {
       waiting: "Waiting for Arrival",
       ready: "Pickup Available",
       completed: "Completed",
-      cancelled: "Cancelled",
-      refunded: "Refunded",
     }
 
     const formatDT = (dateStr: string | undefined) => {
@@ -230,15 +345,15 @@ export default function POSOnlinePickupPage() {
         "Barcode": item.barcode || "-",
         "Qty": item.quantity,
         "Pickup Completed Date": idx === 0 ? formatDT(order.completedAt) : "",
-        "Cancel Date": idx === 0 ? formatDT(order.cancelledAt) : "",
       }))
     )
+
+    if (rows.length === 0) return
 
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "Store Pickup List")
 
-    // Auto column widths
     const colWidths = Object.keys(rows[0] || {}).map((key) => ({
       wch: Math.max(key.length, ...rows.map((r) => String((r as Record<string, unknown>)[key] ?? "").length)) + 2,
     }))
@@ -267,7 +382,7 @@ export default function POSOnlinePickupPage() {
             </div>
 
             <div className="bg-card rounded-lg border border-border p-6 space-y-6">
-              {/* Filters */}
+              {/* Filters - only show pickup status filter for pickup tab */}
               <OrderFilters
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -279,49 +394,92 @@ export default function POSOnlinePickupPage() {
                 onEndDateChange={setEndDate}
                 pickupStatuses={pickupStatuses}
                 onPickupStatusesChange={setPickupStatuses}
+                hidePickupStatus={pickupSubTab !== "pickup"}
+                onSearch={handleSearch}
               />
 
-              {/* Divider */}
-              <div className="border-t border-border" />
+              {/* QR Scan - only for pickup tab */}
+              {pickupSubTab === "pickup" && (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <QrCode className="h-4 w-4" />
+                      <span>Pickup QR Scan</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1 max-w-md">
+                      <Input
+                        placeholder="Scan or enter Order No. / Pickup QR Code"
+                        value={qrScanValue}
+                        onChange={(e) => {
+                          setQrScanValue(e.target.value)
+                          setQrScanError(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleQrScan()
+                          }
+                        }}
+                        className="font-mono text-xs placeholder:text-gray-300"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleQrScan}
+                        disabled={!qrScanValue.trim()}
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {qrScanError && (
+                      <p className="text-sm text-destructive">{qrScanError}</p>
+                    )}
+                  </div>
+                </>
+              )}
 
-              {/* QR Scan */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <QrCode className="h-4 w-4" />
-                  <span>Pickup QR Scan</span>
-                </div>
-                <div className="flex items-center gap-2 flex-1 max-w-md">
-                  <Input
-                    placeholder="Scan or enter Order No. / Pickup QR Code"
-                    value={qrScanValue}
-                    onChange={(e) => {
-                      setQrScanValue(e.target.value)
-                      setQrScanError(null)
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleQrScan()
-                      }
-                    }}
-                    className="font-mono text-xs placeholder:text-gray-300"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={handleQrScan}
-                    disabled={!qrScanValue.trim()}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-                {qrScanError && (
-                  <p className="text-sm text-destructive">{qrScanError}</p>
-                )}
+              {/* Sub-Tab Navigation */}
+              <div className="flex gap-1 border-b border-border -mx-6 px-6 mt-4">
+                <button
+                  type="button"
+                  onClick={() => handleSubTabChange("pickup")}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors",
+                    pickupSubTab === "pickup"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  )}
+                >
+                  <Package className="h-4 w-4" />
+                  Pickup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSubTabChange("cancel")}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors",
+                    pickupSubTab === "cancel"
+                      ? "border-rose-500 text-rose-500"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  )}
+                >
+                  <Ban className="h-4 w-4" />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSubTabChange("refund")}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors",
+                    pickupSubTab === "refund"
+                      ? "border-amber-500 text-amber-500"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  )}
+                >
+                  <CornerDownLeft className="h-4 w-4" />
+                  Refund
+                </button>
               </div>
-
-              {/* Divider */}
-              <div className="border-t border-border" />
 
               {/* Results count and actions */}
               <div className="flex items-center justify-between">
@@ -329,14 +487,16 @@ export default function POSOnlinePickupPage() {
                   Total <span className="font-bold text-primary">{filteredOrders.length}</span> Count
                 </p>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsReturnOpen(true)}
-                    className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Return Processing
-                  </Button>
+                  {pickupSubTab === "pickup" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsReturnOpen(true)}
+                      className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Return Processing
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     onClick={handleDownload}
@@ -352,6 +512,10 @@ export default function POSOnlinePickupPage() {
               <OrderTable
                 orders={paginatedOrders}
                 onViewDetail={handleViewDetail}
+                variant={pickupSubTab}
+                sortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
               />
 
               {/* Pagination */}
@@ -376,26 +540,18 @@ export default function POSOnlinePickupPage() {
         order={selectedOrder}
         open={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
+        tabContext={pickupSubTab}
         onPickupComplete={async (order) => {
           await handlePickupComplete(order.id)
           setIsDetailOpen(false)
         }}
-        onCancel={(order) => {
-          setIsDetailOpen(false)
-          setSelectedOrder(order)
-          setIsCancelOpen(true)
-        }}
+        onCancelOrder={handleCancel}
         onReturn={() => {
           setIsDetailOpen(false)
           setIsReturnOpen(true)
         }}
-      />
-
-      <CancelModal
-        order={selectedOrder}
-        open={isCancelOpen}
-        onOpenChange={setIsCancelOpen}
-        onConfirm={handleCancel}
+        onUpdateInventory={handleUpdateInventory}
+        onUpdateRefund={handleUpdateRefund}
       />
 
       <ReturnModal

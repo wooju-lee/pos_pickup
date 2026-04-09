@@ -21,7 +21,6 @@ const PICKUP_STATUS_OPTIONS: { value: PickupStatus; label: string }[] = [
   { value: "waiting", label: "Waiting for Arrival" },
   { value: "ready", label: "Pickup Available" },
   { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
 ]
 
 interface OrderFiltersProps {
@@ -35,6 +34,8 @@ interface OrderFiltersProps {
   onEndDateChange: (date: Date | undefined) => void
   pickupStatuses: PickupStatus[]
   onPickupStatusesChange: (value: PickupStatus[]) => void
+  hidePickupStatus?: boolean
+  onSearch?: () => void
 }
 
 export function OrderFilters({
@@ -48,6 +49,8 @@ export function OrderFilters({
   onEndDateChange,
   pickupStatuses,
   onPickupStatusesChange,
+  hidePickupStatus = false,
+  onSearch,
 }: OrderFiltersProps) {
   const today = new Date()
 
@@ -102,10 +105,10 @@ export function OrderFilters({
                 <Button
                   variant="outline"
                   style={{ width: 195 }}
-                  className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
+                  className="h-10 justify-between font-normal bg-secondary border-border text-foreground hover:bg-muted px-3"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {startDate ? format(startDate, "yyyy-MM-dd") : "Start"}
+                  <span>{startDate ? format(startDate, "yyyy-MM-dd") : "Start"}</span>
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent style={{ width: 195 }} className="p-0 bg-popover border-border" align="start">
@@ -127,10 +130,10 @@ export function OrderFilters({
                 <Button
                   variant="outline"
                   style={{ width: 195 }}
-                  className="h-10 justify-center font-normal bg-secondary border-border text-foreground hover:bg-muted"
+                  className="h-10 justify-between font-normal bg-secondary border-border text-foreground hover:bg-muted px-3"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {endDate ? format(endDate, "yyyy-MM-dd") : "End"}
+                  <span>{endDate ? format(endDate, "yyyy-MM-dd") : "End"}</span>
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent style={{ width: 195 }} className="p-0 bg-popover border-border" align="start">
@@ -184,7 +187,7 @@ export function OrderFilters({
         </div>
         
         {/* Pickup Status - Multi Select */}
-        <div>
+        {!hidePickupStatus && <div>
           <label className="text-sm font-medium text-muted-foreground block mb-2">
             Pickup Status
           </label>
@@ -259,7 +262,7 @@ export function OrderFilters({
               })}
             </PopoverContent>
           </Popover>
-        </div>
+        </div>}
       </div>
       
       {/* Second Row - Search and Button */}
@@ -280,7 +283,10 @@ export function OrderFilters({
           </div>
         </div>
         
-        <Button className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
+        <Button
+          className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+          onClick={onSearch}
+        >
           <Search className="mr-2 h-4 w-4" />
           Search
         </Button>

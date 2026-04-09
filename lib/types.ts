@@ -15,19 +15,19 @@ export type PickupStatus =
   | "waiting"      // Waiting for Arrival (픽업 주문 대기)
   | "ready"        // Pickup Available (고객 픽업 대기)
   | "completed"    // Completed (픽업 완료)
-  | "cancelled"    // Cancelled (취소)
-  | "refunded"     // Refunded (반품)
 
-export type OrderStatus = 
+export type OrderStatus =
   | "pending"      // 픽업 대기
   | "ready"        // 픽업 준비완료
   | "completed"    // 픽업 완료
   | "cancelled"    // 취소됨
   | "returned"     // 반품완료
 
-export type InventoryLocation = 
-  | "store_sales"   // 매장 재고로 귀속
-  | "store_online"  // 온라인으로 회송
+export type InventoryLocation =
+  | "store"   // 매장(스토어) 재고로 귀속
+  | "omni"    // 옴니 창고로 귀속 (회송 대기)
+
+export type ReturnGrading = "A" | "B" | "C" | "D"
 
 export interface OrderItem {
   id: string
@@ -68,6 +68,9 @@ export interface PickupOrder {
   returnedAt?: string
   savedAt?: string
   inventoryLocation?: InventoryLocation
+  returnGrading?: ReturnGrading
+  cancelReason?: string
+  returnReason?: string
   notes?: string
 }
 

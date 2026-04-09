@@ -11,10 +11,9 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
-import type { PickupOrder, InventoryLocation } from "@/lib/types"
+import type { PickupOrder } from "@/lib/types"
 import {
   Select,
   SelectContent,
@@ -23,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { XCircle, Package, MapPin } from "lucide-react"
+import { XCircle } from "lucide-react"
 
 const CANCEL_REASONS = [
   { value: "customer_request", label: "Customer Request" },
@@ -37,7 +36,7 @@ interface CancelModalProps {
   order: PickupOrder | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (orderId: string, location: InventoryLocation, reason?: string) => Promise<void>
+  onConfirm: (orderId: string, reason?: string) => Promise<void>
 }
 
 export function CancelModal({
@@ -47,7 +46,6 @@ export function CancelModal({
   onConfirm,
 }: CancelModalProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [location, setLocation] = useState<InventoryLocation>("store_sales")
   const [reason, setReason] = useState("")
   const [reasonDetail, setReasonDetail] = useState("")
 
@@ -57,9 +55,8 @@ export function CancelModal({
     setIsLoading(true)
     try {
       const reasonText = reason === "other" ? reasonDetail : CANCEL_REASONS.find(r => r.value === reason)?.label
-      await onConfirm(order.id, location, reasonText)
+      await onConfirm(order.id, reasonText)
       onOpenChange(false)
-      setLocation("store_sales")
       setReason("")
       setReasonDetail("")
     } finally {
@@ -76,7 +73,7 @@ export function CancelModal({
             Cancel Order
           </DialogTitle>
           <DialogDescription>
-            Cancel the order and process a refund. Please select the inventory location.
+            Cancel the order and process a refund. Inventory assignment can be done later from the Cancel tab.
           </DialogDescription>
         </DialogHeader>
 
@@ -87,15 +84,9 @@ export function CancelModal({
               <span className="text-sm font-medium text-primary">Cancel Information</span>
             </div>
             <Separator />
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              <div>
-                <p className="text-muted-foreground text-xs">Order No.</p>
-                <p className="font-mono font-medium">{order.orderNumber}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Customer</p>
-                <p className="font-medium">{order.customerName}</p>
-              </div>
+            <div className="text-sm">
+              <p className="text-muted-foreground text-xs">Order No.</p>
+              <p className="font-mono font-medium">{order.orderNumber}</p>
             </div>
             {/* Cancel Items */}
             <div className="space-y-2">
@@ -145,44 +136,6 @@ export function CancelModal({
                 rows={3}
               />
             )}
-          </div>
-
-          {/* Inventory Location */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Inventory Location
-            </Label>
-            <RadioGroup
-              value={location}
-              onValueChange={(value) => setLocation(value as InventoryLocation)}
-              className="space-y-2"
-            >
-              <label
-                htmlFor="store_sales"
-                className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-              >
-                <RadioGroupItem value="store_sales" id="store_sales" />
-                <div className="flex-1">
-                  <p className="font-medium">Add to Store Inventory</p>
-                  <p className="text-sm text-muted-foreground">
-                    Inventory will be added to <span className="font-medium text-foreground">Store Sales</span> location
-                  </p>
-                </div>
-              </label>
-              <label
-                htmlFor="store_online"
-                className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-              >
-                <RadioGroupItem value="store_online" id="store_online" />
-                <div className="flex-1">
-                  <p className="font-medium">Return to Online</p>
-                  <p className="text-sm text-muted-foreground">
-                    Inventory will be returned to <span className="font-medium text-foreground">Store Online</span> location
-                  </p>
-                </div>
-              </label>
-            </RadioGroup>
           </div>
         </div>
 
