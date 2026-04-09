@@ -1,20 +1,15 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { subMonths } from "date-fns"
-import { Header } from "@/components/pos/header"
-import { TabNavigation } from "@/components/pos/tab-navigation"
 import { OrderFilters } from "@/components/pos/order-filters"
 import { OrderTable } from "@/components/pos/order-table"
-import type { TableVariant } from "@/components/pos/order-table"
 import { Pagination } from "@/components/pos/pagination"
 import { OrderDetailModal } from "@/components/pos/order-detail-modal"
 import { ReturnModal } from "@/components/pos/return-modal"
 import { OutboundModal } from "@/components/pos/outbound-modal"
-import { POSMain } from "@/components/pos/pos-main"
-import { OutboundQueue } from "@/components/pos/outbound-queue"
 import { Button } from "@/components/ui/button"
-import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
 import { mockOrders, mockReturnRequests } from "@/lib/mock-data"
 import type { PickupOrder, PickupStatus, InventoryLocation, ReturnGrading, ReturnRequest, ItemDisposition, OutboundLocation } from "@/lib/types"
@@ -33,12 +28,15 @@ import { cn } from "@/lib/utils"
 
 type PickupSubTab = "pickup" | "cancel" | "refund"
 
-export default function POSOnlinePickupPage() {
-  const [activeTab, setActiveTab] = useState("store-pickup")
+interface StorePickupPageProps {
+  initialSubTab?: PickupSubTab
+}
+
+export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPageProps) {
+  const router = useRouter()
   const [orders, setOrders] = useState<PickupOrder[]>(mockOrders)
 
-  // Sub-tab state
-  const [pickupSubTab, setPickupSubTab] = useState<PickupSubTab>("pickup")
+  const pickupSubTab = initialSubTab
 
   // Filter states (draft = UI inputs, applied = actually used for filtering)
   const [searchQuery, setSearchQuery] = useState("")
@@ -68,7 +66,7 @@ export default function POSOnlinePickupPage() {
   const [isReturnOpen, setIsReturnOpen] = useState(false)
   const [qrScanValue, setQrScanValue] = useState("")
   const [qrScanError, setQrScanError] = useState<string | null>(null)
-  const [selectedListItems, setSelectedCancelItems] = useState<Set<string>>(new Set())
+  const [selectedListItems, setSelectedListItems] = useState<Set<string>>(new Set())
   const [isChangeStockOpen, setIsChangeStockOpen] = useState(false)
   const [isOutboundOpen, setIsOutboundOpen] = useState(false)
 
@@ -234,12 +232,12 @@ export default function POSOnlinePickupPage() {
 
   // Reset pagination when sub-tab changes
   const handleSubTabChange = (tab: PickupSubTab) => {
-    setPickupSubTab(tab)
-    setCurrentPage(1)
-    setSearchQuery("")
-    setSortKey("orderDate")
-    setSortDirection("desc")
-    setSelectedCancelItems(new Set())
+    const routes: Record<PickupSubTab, string> = {
+      pickup: "/",
+      cancel: "/cancel",
+      refund: "/refund",
+    }
+    router.push(routes[tab])
   }
 
   // QR scan lookup
@@ -328,7 +326,7 @@ export default function POSOnlinePickupPage() {
     const items = resolveSelectedCancelItems()
     if (items.length === 0) return
     handleBulkDisposition(items, disposition)
-    setSelectedCancelItems(new Set())
+    setSelectedListItems(new Set())
   }
 
   // Get selected cancel items as OutboundItem[]
@@ -614,28 +612,8 @@ export default function POSOnlinePickupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Toaster richColors position="top-right" />
-      <Header />
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {activeTab === "pos-main" && <POSMain />}
-
-      {activeTab === "outbound-queue" && (
-        <main className="p-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Outbound Label Print</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              View outbound registrations and print shipping labels.
-            </p>
-          </div>
-          <OutboundQueue />
-        </main>
-      )}
-
-      {activeTab === "store-pickup" && (
-        <>
-          <main className="p-6">
+    <>
+      <main className="p-6">
             {/* Page Title */}
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground">Store Pickup List</h2>
@@ -815,7 +793,7 @@ export default function POSOnlinePickupPage() {
                 onSort={handleSort}
                 onBulkDisposition={handleBulkDisposition}
                 selectedItems={selectedListItems}
-                onSelectedItemsChange={setSelectedCancelItems}
+                onSelectedItemsChange={setSelectedListItems}
               />
 
               {/* Pagination */}
@@ -832,8 +810,6 @@ export default function POSOnlinePickupPage() {
               />
             </div>
           </main>
-        </>
-      )}
 
       {/* Store Pickup Modals */}
       <OrderDetailModal
@@ -903,6 +879,6 @@ export default function POSOnlinePickupPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

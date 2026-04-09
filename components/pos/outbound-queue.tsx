@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Table,
   TableBody,
@@ -48,7 +49,9 @@ const STATUS_CONFIG: Record<OutboundStatus, { label: string; className: string }
   failed: { label: "Failed", className: "bg-rose-50 text-rose-500 border-rose-200" },
 }
 
-const mockOutbounds: OutboundRecord[] = [
+export { type OutboundRecord }
+
+export const mockOutbounds: OutboundRecord[] = [
   {
     id: "ob1",
     createDate: "2026-04-01 14:00",
@@ -173,7 +176,7 @@ function formatDT(dateStr: string): string {
 }
 
 export function OutboundQueue() {
-  const [selectedRecord, setSelectedRecord] = useState<OutboundRecord | null>(null)
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
@@ -206,56 +209,6 @@ export function OutboundQueue() {
     toast.success("Print shipping labels", {
       description: `Printing labels for ${record.outboundNo} (${record.orderCount} orders)`,
     })
-  }
-
-  // Detail view
-  if (selectedRecord) {
-    return (
-      <div className="space-y-6">
-        <button
-          type="button"
-          onClick={() => setSelectedRecord(null)}
-          className="flex items-center gap-2 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          Back to List
-        </button>
-
-        <div className="bg-card rounded-lg border border-border p-6 space-y-6">
-          <div className="border border-border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-secondary/50 hover:bg-secondary/50 border-b border-border">
-                  <TableHead className="font-semibold text-foreground text-center h-14">Create Date</TableHead>
-                  <TableHead className="font-semibold text-foreground text-center h-14">Outbound No.</TableHead>
-                  <TableHead className="font-semibold text-foreground text-center h-14">Order No.</TableHead>
-                  <TableHead className="font-semibold text-foreground h-14">
-                    <div>Product Info</div>
-                    <div className="text-xs font-normal text-muted-foreground">(Code / Name / Barcode)</div>
-                  </TableHead>
-                  <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {selectedRecord.items.map((item, idx) => (
-                  <TableRow key={idx} className="border-b border-border">
-                    <TableCell className="text-sm text-center py-4 whitespace-nowrap">
-                      {idx === 0 ? formatDT(selectedRecord.createDate) : ""}
-                    </TableCell>
-                    <TableCell className="text-sm text-center font-mono py-4 font-medium">
-                      {idx === 0 ? selectedRecord.outboundNo : ""}
-                    </TableCell>
-                    <TableCell className="text-sm text-center font-mono py-4">{item.orderNo}</TableCell>
-                    <TableCell className="text-sm py-4">{item.productInfo} / {item.barcode}</TableCell>
-                    <TableCell className="text-sm text-center py-4">{item.qty}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   // List view
@@ -355,7 +308,7 @@ export function OutboundQueue() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setSelectedRecord(record)}
+                      onClick={() => router.push(`/outbound-label/${record.id}`)}
                       className="text-xs px-8"
                     >
                       Detail
