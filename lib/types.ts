@@ -27,7 +27,11 @@ export type InventoryLocation =
   | "store"   // 매장(스토어) 재고로 귀속
   | "omni"    // 옴니 창고로 귀속 (회송 대기)
 
-export type ReturnGrading = "A" | "B" | "C" | "D"
+export type ReturnGrading = "sellable" | "resellable" | "dispose"
+
+export type OutboundLocation = "available" | "disposal"
+
+export type ItemDisposition = "store" | "warehouse" | null
 
 export interface OrderItem {
   id: string
@@ -38,6 +42,9 @@ export interface OrderItem {
   totalPrice: number
   imageUrl?: string
   barcode?: string
+  disposition?: ItemDisposition
+  grading?: ReturnGrading
+  outboundNo?: string
 }
 
 export interface PickupOrder {

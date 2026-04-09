@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
-import type { ReturnRequest, PickupStatus } from "@/lib/types"
-import { RotateCcw, Search, AlertCircle } from "lucide-react"
+import type { ReturnRequest, PickupStatus, ReturnGrading } from "@/lib/types"
+import { RotateCcw, Search, AlertCircle, Star } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
@@ -23,6 +23,12 @@ const STATUS_CONFIG: Record<PickupStatus, { label: string; className: string }> 
   ready: { label: "Pickup Available", className: "bg-sky-50 text-sky-600 border-sky-200" },
   completed: { label: "Completed", className: "bg-emerald-50 text-emerald-600 border-emerald-200" },
 }
+
+const GRADING_OPTIONS: { value: ReturnGrading; label: string; description: string; color: string; activeColor: string }[] = [
+  { value: "sellable", label: "Sellable", description: "Unopened / Can be resold as-is", color: "text-emerald-600 border-emerald-300 hover:bg-emerald-50", activeColor: "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" },
+  { value: "resellable", label: "Resellable", description: "Opened / Product OK / Can be resold", color: "text-sky-600 border-sky-300 hover:bg-sky-50", activeColor: "bg-sky-600 hover:bg-sky-700 text-white border-sky-600" },
+  { value: "dispose", label: "Dispose", description: "Product defect / Cannot be resold", color: "text-rose-600 border-rose-300 hover:bg-rose-50", activeColor: "bg-rose-600 hover:bg-rose-700 text-white border-rose-600" },
+]
 
 function formatDT(dateStr?: string): string {
   if (!dateStr) return "-"
@@ -35,7 +41,7 @@ interface ReturnModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSearch: (qrCode: string) => Promise<ReturnRequest | null>
-  onConfirm: (returnRequest: ReturnRequest) => Promise<void>
+  onConfirm: (returnRequest: ReturnRequest, itemGradings: Record<string, ReturnGrading>) => Promise<void>
 }
 
 export function ReturnModal({
@@ -49,6 +55,7 @@ export function ReturnModal({
   const [isProcessing, setIsProcessing] = useState(false)
   const [returnRequest, setReturnRequest] = useState<ReturnRequest | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [itemGradings, setItemGradings] = useState<Record<string, ReturnGrading>>({})
 
   const handleSearch = async () => {
     if (!qrCode.trim()) {
@@ -59,6 +66,7 @@ export function ReturnModal({
     setIsSearching(true)
     setError(null)
     setReturnRequest(null)
+    setItemGradings({})
 
     try {
       const result = await onSearch(qrCode.trim())
@@ -74,12 +82,16 @@ export function ReturnModal({
     }
   }
 
+  const allGraded = returnRequest
+    ? returnRequest.items.every((item) => itemGradings[item.id])
+    : false
+
   const handleConfirm = async () => {
-    if (!returnRequest || isProcessing) return
+    if (!returnRequest || isProcessing || !allGraded) return
 
     setIsProcessing(true)
     try {
-      await onConfirm(returnRequest)
+      await onConfirm(returnRequest, itemGradings)
       handleClose()
     } finally {
       setIsProcessing(false)
@@ -90,6 +102,7 @@ export function ReturnModal({
     onOpenChange(false)
     setQrCode("")
     setReturnRequest(null)
+    setItemGradings({})
     setError(null)
   }
 
@@ -99,9 +112,13 @@ export function ReturnModal({
     }
   }
 
+  const setGrading = (itemId: string, grading: ReturnGrading) => {
+    setItemGradings((prev) => ({ ...prev, [itemId]: grading }))
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-4xl outline-none focus:outline-none ring-0 focus:ring-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RotateCcw className="h-5 w-5 text-primary" />
@@ -112,7 +129,7 @@ export function ReturnModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-10">
+        <div className="space-y-4">
           {/* QR Code Input */}
           {!returnRequest && (
             <div className="space-y-2">
@@ -152,9 +169,9 @@ export function ReturnModal({
 
           {/* Return Info */}
           {returnRequest && (
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-primary">Return Information</span>
+            <>
+              {/* Status badge */}
+              <div className="flex justify-end">
                 <span className={cn(
                   "inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md border",
                   STATUS_CONFIG[returnRequest.pickupStatus].className
@@ -162,60 +179,98 @@ export function ReturnModal({
                   {STATUS_CONFIG[returnRequest.pickupStatus].label}
                 </span>
               </div>
-              <Separator />
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                <div>
-                  <p className="text-muted-foreground text-xs">Order No.</p>
-                  <p className="font-mono font-medium">{returnRequest.orderNumber}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Return ID</p>
-                  <p className="font-mono font-medium">{returnRequest.returnQrCode}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Order Date</p>
-                  <p>{formatDT(returnRequest.orderDate)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Pickup Completed Date</p>
-                  <p>{formatDT(returnRequest.completedAt)}</p>
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-4">
+
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Order No.</p>
+                    <p className="font-mono font-bold text-primary">{returnRequest.orderNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Return ID</p>
+                    <p className="font-mono font-bold text-primary">{returnRequest.returnQrCode}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Order Date</p>
+                    <p>{formatDT(returnRequest.orderDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Completed Date</p>
+                    <p>{formatDT(returnRequest.completedAt)}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">Return Items</p>
-                <div className="rounded border border-border overflow-hidden">
-                  <div className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 bg-secondary/50 text-xs font-medium text-muted-foreground">
-                    <span>Product (Code / Name)</span>
+              {/* Item-level grading */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">
+                  Return Items & Grading
+                </Label>
+                <div className="rounded-lg border border-border overflow-hidden bg-white">
+                  <div className="grid grid-cols-[1fr_50px_240px] px-4 py-2.5 bg-secondary/50 text-xs font-medium text-muted-foreground">
+                    <span>Product</span>
                     <span className="text-center">Qty</span>
+                    <span className="text-center">Grading</span>
                   </div>
                   {returnRequest.items.map((item) => (
                     <div
                       key={item.id}
-                      className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 text-sm border-t border-border"
+                      className="grid grid-cols-[1fr_50px_240px] px-4 py-3 text-sm border-t border-border bg-white items-center"
                     >
                       <span>{item.sku} / {item.productName}</span>
                       <span className="text-center">{item.quantity}</span>
+                      <div className="flex gap-1.5">
+                        {GRADING_OPTIONS.map((g) => {
+                          const isActive = itemGradings[item.id] === g.value
+                          return (
+                            <button
+                              key={g.value}
+                              type="button"
+                              onClick={() => setGrading(item.id, g.value)}
+                              className={cn(
+                                "rounded-md border px-3 py-2 text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer",
+                                isActive ? g.activeColor : g.color
+                              )}
+                            >
+                              {g.label}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   ))}
+                  {!allGraded && (
+                    <div className="grid grid-cols-[1fr_50px_240px] px-4 py-2 border-t border-border bg-white">
+                      <span />
+                      <span />
+                      <p className="text-xs text-muted-foreground text-center">
+                        Please assign a grading to all items.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
         {returnRequest && (
           <div className="flex justify-end pt-2">
-            <Button onClick={handleConfirm} disabled={isProcessing}>
+            <Button
+              size="lg"
+              onClick={handleConfirm}
+              disabled={isProcessing || !allGraded}
+              className="h-12 px-8 text-base"
+            >
               {isProcessing ? (
                 <>
-                  <Spinner className="mr-2 h-4 w-4" />
+                  <Spinner className="mr-2 h-5 w-5" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <RotateCcw className="mr-2 h-4 w-4" />
+                  <RotateCcw className="mr-2 h-5 w-5" />
                   Confirm Return
                 </>
               )}

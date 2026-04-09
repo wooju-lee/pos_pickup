@@ -14,12 +14,9 @@ export function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <Menu className="h-5 w-5" />
-        </Button>
         <div>
-          <p className="text-xs text-muted-foreground font-medium">[CA1001]</p>
-          <h1 className="text-lg font-bold text-foreground tracking-tight">GM_TORONTO_MALL_YORKDALE</h1>
+          <p className="text-sm text-primary font-medium">[CA1001]</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">GM_TORONTO_MALL_YORKDALE</h1>
         </div>
       </div>
       

@@ -14,7 +14,7 @@ const tabs: Tab[] = [
   { id: "daily-sales", label: "Daily Sales Summary", icon: <BarChart3 className="h-4 w-4" /> },
   { id: "store-pickup", label: "Store Pickup List", icon: <Package className="h-4 w-4" /> },
   { id: "rx-operation", label: "RX Operation List", icon: <Info className="h-4 w-4" /> },
-  { id: "outbound-queue", label: "Outbound Queue & Label Print", icon: <Printer className="h-4 w-4" /> },
+  { id: "outbound-queue", label: "Outbound Label Print", icon: <Printer className="h-4 w-4" /> },
 ]
 
 interface TabNavigationProps {

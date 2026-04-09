@@ -28,16 +28,20 @@ import {
 } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
-import type { PickupOrder, PickupStatus, InventoryLocation, ReturnGrading } from "@/lib/types"
+import type { PickupOrder, PickupStatus, InventoryLocation, ReturnGrading, ItemDisposition } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { CheckCircle, XCircle, MapPin, Star, Package } from "lucide-react"
+import { CheckCircle, XCircle, MapPin, Star, Package, Store, Warehouse } from "lucide-react"
 import type { TableVariant } from "./order-table"
 
 const CANCEL_REASONS = [
   { value: "change_of_mind", label: "Change of Mind" },
-  { value: "change_payment", label: "Change Payment Method" },
-  { value: "change_product", label: "Purchase Different Product" },
-  { value: "other", label: "Other" },
+  { value: "fit_comfort", label: "Fit & Comfort Issue" },
+  { value: "appearance", label: "Appearance Issue" },
+  { value: "functional_defect", label: "Functional Defect" },
+  { value: "order_mistake", label: "Order Mistake" },
+  { value: "order_status", label: "Order Status Issue" },
+  { value: "prescription_mismatch", label: "Prescription Mismatch" },
+  { value: "etc", label: "ETC." },
 ]
 
 interface OrderDetailModalProps {
@@ -49,6 +53,8 @@ interface OrderDetailModalProps {
   onReturn: (order: PickupOrder) => void
   onUpdateInventory?: (orderId: string, location: InventoryLocation) => Promise<void>
   onUpdateRefund?: (orderId: string, grading: ReturnGrading, location: InventoryLocation) => Promise<void>
+  onItemDisposition?: (orderId: string, itemId: string, disposition: ItemDisposition) => void
+  onItemGrading?: (orderId: string, itemId: string, grading: ReturnGrading) => void
   tabContext?: TableVariant
 }
 
@@ -86,11 +92,10 @@ function formatCurrency(amount: number): string {
   return `${new Intl.NumberFormat("en-US").format(amount)} USD`
 }
 
-const RETURN_GRADING_OPTIONS: { value: ReturnGrading; label: string; description: string }[] = [
-  { value: "A", label: "Grade A", description: "Like new — can be resold as-is" },
-  { value: "B", label: "Grade B", description: "Minor signs of use — resellable at discount" },
-  { value: "C", label: "Grade C", description: "Visible wear/damage — needs repair" },
-  { value: "D", label: "Grade D", description: "Severely damaged — cannot be resold" },
+const RETURN_GRADING_OPTIONS: { value: ReturnGrading; label: string; color: string }[] = [
+  { value: "sellable", label: "Sellable", color: "bg-emerald-600" },
+  { value: "resellable", label: "Resellable", color: "bg-sky-600" },
+  { value: "dispose", label: "Dispose", color: "bg-rose-600" },
 ]
 
 export function OrderDetailModal({
@@ -102,6 +107,8 @@ export function OrderDetailModal({
   onReturn,
   onUpdateInventory,
   onUpdateRefund,
+  onItemDisposition,
+  onItemGrading,
   tabContext = "pickup",
 }: OrderDetailModalProps) {
   const [inventoryLocation, setInventoryLocation] = useState<InventoryLocation>("store")
@@ -366,199 +373,111 @@ export function OrderDetailModal({
             </div>
           )}
 
-          {/* === CANCEL TAB: Inventory Assignment === */}
+          {/* === CANCEL TAB: Item-level Stock Disposition === */}
           {tabContext === "cancel" && (
             <div className="space-y-4 pt-2">
               <Separator />
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-base font-semibold">
-                  <MapPin className="h-4 w-4" />
-                  Inventory Assignment
-                </Label>
-                {order.inventoryLocation ? (
-                  <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm font-medium">
-                        Already assigned to{" "}
-                        <span className="text-primary font-semibold">
-                          {order.inventoryLocation === "store" ? "Store" : "Omni Warehouse"}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Select where the cancelled inventory should be assigned.
-                    </p>
-                    <RadioGroup
-                      value={inventoryLocation}
-                      onValueChange={(value) => setInventoryLocation(value as InventoryLocation)}
-                      className="space-y-2"
-                    >
-                      <label
-                        htmlFor="cancel_store"
-                        className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                      >
-                        <RadioGroupItem value="store" id="cancel_store" />
-                        <div className="flex-1">
-                          <p className="font-medium">Store</p>
-                          <p className="text-sm text-muted-foreground">
-                            Add to store inventory for in-store sales
-                          </p>
-                        </div>
-                      </label>
-                      <label
-                        htmlFor="cancel_omni"
-                        className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                      >
-                        <RadioGroupItem value="omni" id="cancel_omni" />
-                        <div className="flex-1">
-                          <p className="font-medium">Omni Warehouse</p>
-                          <p className="text-sm text-muted-foreground">
-                            Return to omni warehouse for online redistribution
-                          </p>
-                        </div>
-                      </label>
-                    </RadioGroup>
-                    <div className="flex justify-end pt-2">
-                      <Button size="lg" onClick={handleSaveInventory} disabled={isProcessing} className="h-12 px-8 text-base">
-                        {isProcessing ? (
-                          <>
-                            <Spinner className="mr-2 h-5 w-5" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Package className="mr-2 h-5 w-5" />
-                            Assign Inventory
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </>
-                )}
+              <Label className="flex items-center gap-2 text-base font-semibold">
+                <MapPin className="h-4 w-4" />
+                Stock Disposition
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Assign each item to Store or Warehouse (W.H).
+              </p>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>Product</TableHead>
+                      <TableHead className="text-center">Qty</TableHead>
+                      <TableHead className="text-center">Disposition</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {order.items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="text-sm">
+                          <span className="font-mono">{item.sku}</span>
+                          <span className="text-muted-foreground mx-1.5">|</span>
+                          {item.productName}
+                        </TableCell>
+                        <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              variant={item.disposition === "store" ? "default" : "outline"}
+                              onClick={() => onItemDisposition?.(order.id, item.id, "store")}
+                              className={cn("gap-1 h-8 px-3 text-xs", item.disposition === "store" && "bg-blue-600 hover:bg-blue-700")}
+                            >
+                              <Store className="h-3 w-3" />
+                              Store
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={item.disposition === "warehouse" ? "default" : "outline"}
+                              onClick={() => onItemDisposition?.(order.id, item.id, "warehouse")}
+                              className={cn("gap-1 h-8 px-3 text-xs", item.disposition === "warehouse" && "bg-violet-600 hover:bg-violet-700")}
+                            >
+                              <Warehouse className="h-3 w-3" />
+                              W.H
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
 
-          {/* === REFUND TAB: Grading + Inventory Assignment === */}
+          {/* === REFUND TAB: Grading Summary (read-only) === */}
           {tabContext === "refund" && (
             <div className="space-y-4 pt-2">
               <Separator />
-
-              {order.returnGrading && order.inventoryLocation ? (
-                <div className="space-y-3">
-                  <Label className="flex items-center gap-2 text-base font-semibold">
-                    <Star className="h-4 w-4" />
-                    Return Processing Status
-                  </Label>
-                  <div className="p-4 rounded-lg bg-muted/50 border border-border space-y-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm">
-                        Grading:{" "}
-                        <span className="font-semibold text-primary">Grade {order.returnGrading}</span>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm">
-                        Inventory:{" "}
-                        <span className="font-semibold text-primary">
-                          {order.inventoryLocation === "store" ? "Store" : "Omni Warehouse"}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Grading Selection */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-base font-semibold">
-                      <Star className="h-4 w-4" />
-                      Return Grading
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Assess the condition of the returned item.
-                    </p>
-                    <Select value={returnGrading} onValueChange={(v) => setReturnGrading(v as ReturnGrading)}>
-                      <SelectTrigger className="w-full bg-secondary border-border text-foreground">
-                        <SelectValue placeholder="Select grading" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        {RETURN_GRADING_OPTIONS.map((g) => (
-                          <SelectItem key={g.value} value={g.value}>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{g.label}</span>
-                              <span className="text-muted-foreground">— {g.description}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Inventory Assignment */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-base font-semibold">
-                      <MapPin className="h-4 w-4" />
-                      Inventory Assignment
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Select where the returned inventory should be assigned.
-                    </p>
-                    <RadioGroup
-                      value={inventoryLocation}
-                      onValueChange={(value) => setInventoryLocation(value as InventoryLocation)}
-                      className="space-y-2"
-                    >
-                      <label
-                        htmlFor="refund_store"
-                        className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                      >
-                        <RadioGroupItem value="store" id="refund_store" />
-                        <div className="flex-1">
-                          <p className="font-medium">Store</p>
-                          <p className="text-sm text-muted-foreground">
-                            Add to store inventory for in-store sales
-                          </p>
-                        </div>
-                      </label>
-                      <label
-                        htmlFor="refund_omni"
-                        className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                      >
-                        <RadioGroupItem value="omni" id="refund_omni" />
-                        <div className="flex-1">
-                          <p className="font-medium">Omni Warehouse</p>
-                          <p className="text-sm text-muted-foreground">
-                            Keep in omni warehouse for future return shipping
-                          </p>
-                        </div>
-                      </label>
-                    </RadioGroup>
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <Button size="lg" onClick={handleSaveRefund} disabled={isProcessing || !returnGrading} className="h-12 px-8 text-base">
-                      {isProcessing ? (
-                        <>
-                          <Spinner className="mr-2 h-5 w-5" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Package className="mr-2 h-5 w-5" />
-                          Save Grading & Assign Inventory
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
+              <Label className="flex items-center gap-2 text-base font-semibold">
+                <Star className="h-4 w-4" />
+                Return Grading
+              </Label>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>Product</TableHead>
+                      <TableHead className="text-center">Qty</TableHead>
+                      <TableHead className="text-center">Grading</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {order.items.map((item) => {
+                      const gradeOption = RETURN_GRADING_OPTIONS.find((g) => g.value === item.grading)
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-sm">
+                            <span className="font-mono">{item.sku}</span>
+                            <span className="text-muted-foreground mx-1.5">|</span>
+                            {item.productName}
+                          </TableCell>
+                          <TableCell className="text-center">{item.quantity}</TableCell>
+                          <TableCell className="text-center">
+                            {gradeOption ? (
+                              <span className={cn(
+                                "inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-semibold text-white",
+                                gradeOption.color
+                              )}>
+                                {gradeOption.label}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </div>

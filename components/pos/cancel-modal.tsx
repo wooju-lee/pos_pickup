@@ -92,14 +92,14 @@ export function CancelModal({
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Cancel Items</p>
               <div className="rounded border border-border overflow-hidden">
-                <div className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 bg-secondary/50 text-xs font-medium text-muted-foreground">
+                <div className="grid grid-cols-[1fr_60px] px-3 py-2 bg-secondary/50 text-xs font-medium text-muted-foreground">
                   <span>Product (Code / Name)</span>
                   <span className="text-center">Qty</span>
                 </div>
                 {order.items.map((item) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[1fr_auto] gap-4 px-3 py-2 text-sm border-t border-border"
+                    className="grid grid-cols-[1fr_60px] px-3 py-2 text-sm border-t border-border"
                   >
                     <span>{item.sku} / {item.productName}</span>
                     <span className="text-center">{item.quantity}</span>

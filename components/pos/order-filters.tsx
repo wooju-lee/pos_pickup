@@ -195,19 +195,20 @@ export function OrderFilters({
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-[220px] h-10 justify-between font-normal bg-secondary border-border text-foreground hover:bg-muted"
+                className="w-[360px] h-10 justify-between font-normal bg-secondary border-border text-foreground hover:bg-muted"
               >
                 <span className="truncate">
                   {pickupStatuses.length === 0 || pickupStatuses.length === PICKUP_STATUS_OPTIONS.length
                     ? "All"
-                    : pickupStatuses.length === 1
-                      ? PICKUP_STATUS_OPTIONS.find(o => o.value === pickupStatuses[0])?.label
-                      : `${pickupStatuses.length} selected`}
+                    : PICKUP_STATUS_OPTIONS
+                        .filter(o => pickupStatuses.includes(o.value))
+                        .map(o => o.label)
+                        .join(", ")}
                 </span>
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-1 bg-popover border-border" align="start">
+            <PopoverContent className="w-[360px] p-1 bg-popover border-border" align="start">
               {/* All toggle */}
               <button
                 type="button"
