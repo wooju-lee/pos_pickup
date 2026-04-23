@@ -12,6 +12,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-28 09:30",
     pickupDate: "2026-04-09 12:00",
     outboundDate: "2026-04-01 15:00",
+    outboundIvNo: "TO2026040101",
     inboundDate: undefined,
     items: [
       { id: "item1", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -31,6 +32,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-29 16:00",
     pickupDate: "2026-04-14 12:00",
     outboundDate: "2026-04-04 11:00",
+    outboundIvNo: "TO2026040402",
     inboundDate: undefined,
     items: [
       { id: "item2", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
@@ -51,6 +53,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-30 11:20",
     pickupDate: "2026-04-12 12:00",
     outboundDate: "2026-04-03 09:00",
+    outboundIvNo: "TO2026040303",
     inboundDate: undefined,
     items: [
       { id: "item4", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001" },
@@ -59,6 +62,45 @@ export const mockOrders: PickupOrder[] = [
     paymentMethod: "토스",
     status: "pending", pickupStatus: "waiting", approvalStatus: "unready", processingStatus: "pending",
     pickupQrCode: "PU-20260330-003",
+  },
+
+  // ── 1-1. Waiting for Arrival · 출고 미등록 (No Outbound) ──
+  {
+    id: "40",
+    orderNumber: "ON_20260407040",
+    sequenceNumber: 40,
+    customerName: "이채원",
+    customerPhone: "010-8811-2233",
+    customerEmail: "chaewon.lee@email.com",
+    orderDate: "2026-04-07 10:00",
+    pickupDate: "2026-04-21 12:00",
+    inboundDate: undefined,
+    items: [
+      { id: "item58", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
+    ],
+    subtotal: 299000, discount: 0, totalAmount: 299000, paidAmount: 299000,
+    paymentMethod: "카카오페이",
+    status: "pending", pickupStatus: "waiting", approvalStatus: "unready", processingStatus: "pending",
+    pickupQrCode: "PU-20260407-040",
+  },
+  {
+    id: "41",
+    orderNumber: "ON_20260408041",
+    sequenceNumber: 41,
+    customerName: "정우빈",
+    customerPhone: "010-9922-3344",
+    customerEmail: "woobin.jung@email.com",
+    orderDate: "2026-04-08 14:30",
+    pickupDate: "2026-04-22 12:00",
+    inboundDate: undefined,
+    items: [
+      { id: "item59", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
+      { id: "item60", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 1, unitPrice: 35000, totalPrice: 35000, barcode: undefined },
+    ],
+    subtotal: 485000, discount: 10000, totalAmount: 475000, paidAmount: 475000,
+    paymentMethod: "신용카드",
+    status: "pending", pickupStatus: "waiting", approvalStatus: "unready", processingStatus: "pending",
+    pickupQrCode: "PU-20260408-041",
   },
 
   // ── 2. Pickup Available · 픽업일 기준 (입고 완료, 픽업일 이내) ──
@@ -72,6 +114,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-26 14:00",
     pickupDate: "2026-04-22 12:00",
     outboundDate: "2026-03-30 10:00",
+    outboundIvNo: "TO2026033004",
     inboundDate: "2026-04-02 09:00",
     items: [
       { id: "item5", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -92,6 +135,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-27 11:00",
     pickupDate: "2026-04-24 12:00",
     outboundDate: "2026-03-31 14:00",
+    outboundIvNo: "TO2026033105",
     inboundDate: "2026-04-04 10:00",
     items: [
       { id: "item7", productName: "URBAN WALKER-X", sku: "2200100", quantity: 2, unitPrice: 189000, totalPrice: 378000, barcode: "8892840001" },
@@ -111,6 +155,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-30 10:00",
     pickupDate: "2026-04-30 12:00",
     outboundDate: "2026-04-02 09:00",
+    outboundIvNo: "TO2026040206",
     inboundDate: "2026-04-06 14:00",
     items: [
       { id: "item8", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -131,6 +176,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-31 13:00",
     pickupDate: "2026-04-27 12:00",
     outboundDate: "2026-04-03 10:00",
+    outboundIvNo: "TO2026040307",
     inboundDate: "2026-04-06 11:00",
     items: [
       { id: "item10", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001" },
@@ -152,6 +198,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-27 15:00",
     pickupDate: "2026-04-04 12:00",
     outboundDate: "2026-04-02 09:00",
+    outboundIvNo: "TO2026040208",
     inboundDate: "2026-04-12 15:00",
     items: [
       { id: "item11", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -171,6 +218,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-28 10:30",
     pickupDate: "2026-04-06 12:00",
     outboundDate: "2026-04-03 14:00",
+    outboundIvNo: "TO2026040309",
     inboundDate: "2026-04-14 10:00",
     items: [
       { id: "item12", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
@@ -190,6 +238,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-29 09:00",
     pickupDate: "2026-04-08 12:00",
     outboundDate: "2026-04-04 11:00",
+    outboundIvNo: "TO2026040410",
     inboundDate: "2026-04-16 16:00",
     items: [
       { id: "item13", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 2, unitPrice: 35000, totalPrice: 70000, barcode: undefined },
@@ -211,6 +260,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-17 11:00",
     pickupDate: "2026-03-30 12:00",
     outboundDate: "2026-03-22 10:00",
+    outboundIvNo: "TO2026032211",
     inboundDate: "2026-03-26 09:00",
     items: [
       { id: "item14", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -232,6 +282,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-19 09:00",
     pickupDate: "2026-04-02 12:00",
     outboundDate: "2026-03-23 15:00",
+    outboundIvNo: "TO2026032312",
     inboundDate: "2026-03-27 11:00",
     items: [
       { id: "item16", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001" },
@@ -252,6 +303,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-22 14:00",
     pickupDate: "2026-04-04 12:00",
     outboundDate: "2026-03-26 09:00",
+    outboundIvNo: "TO2026032613",
     inboundDate: "2026-03-30 14:00",
     items: [
       { id: "item17", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -273,6 +325,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-25 16:00",
     pickupDate: "2026-04-06 12:00",
     outboundDate: "2026-03-28 10:00",
+    outboundIvNo: "TO2026032814",
     inboundDate: "2026-04-01 09:00",
     items: [
       { id: "item19", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
@@ -295,6 +348,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-12 10:00",
     pickupDate: "2026-03-26 12:00",
     outboundDate: "2026-03-17 09:00",
+    outboundIvNo: "TO2026031715",
     inboundDate: "2026-03-30 14:00",
     items: [
       { id: "item20", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001" },
@@ -318,9 +372,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-26 09:00",
     pickupDate: "2026-04-09 12:00",
     outboundDate: "2026-03-30 10:00",
+    outboundIvNo: "TO2026033016",
     inboundDate: undefined,
     items: [
-      { id: "item22", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", disposition: "warehouse" as const },
+      { id: "item22", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
     ],
     subtotal: 299000, discount: 0, totalAmount: 299000, paidAmount: 299000,
     paymentMethod: "신용카드",
@@ -339,6 +394,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-27 14:00",
     pickupDate: "2026-04-12 12:00",
     outboundDate: "2026-04-01 09:00",
+    outboundIvNo: "TO2026040117",
     inboundDate: "2026-04-06 15:00",
     items: [
       { id: "item23", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", disposition: "store" as const },
@@ -361,6 +417,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-18 10:30",
     pickupDate: "2026-04-01 12:00",
     outboundDate: "2026-03-22 09:00",
+    outboundIvNo: "TO2026032223",
     inboundDate: "2026-03-28 11:00",
     items: [
       { id: "item33", productName: "URBAN WALKER-X", sku: "2200100", quantity: 2, unitPrice: 189000, totalPrice: 378000, barcode: "8892840001", disposition: "store" as const },
@@ -382,6 +439,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-20 15:00",
     pickupDate: "2026-04-05 12:00",
     outboundDate: "2026-03-24 10:00",
+    outboundIvNo: "TO2026032424",
     inboundDate: undefined,
     items: [
       { id: "item34", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -404,9 +462,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-22 09:00",
     pickupDate: "2026-04-08 12:00",
     outboundDate: "2026-03-26 11:00",
+    outboundIvNo: "TO2026032625",
     inboundDate: "2026-03-30 14:00",
     items: [
-      { id: "item36", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", disposition: "warehouse" as const },
+      { id: "item36", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", disposition: "warehouse" as const, outboundNo: "TOO01025" },
     ],
     subtotal: 450000, discount: 30000, totalAmount: 420000, paidAmount: 420000,
     paymentMethod: "신용카드",
@@ -425,6 +484,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-25 12:00",
     pickupDate: "2026-04-10 12:00",
     outboundDate: "2026-03-29 09:00",
+    outboundIvNo: "TO2026032926",
     inboundDate: "2026-04-03 10:00",
     items: [
       { id: "item37", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 3, unitPrice: 45000, totalPrice: 135000, barcode: "8892841003" },
@@ -447,6 +507,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-15 09:00",
     pickupDate: "2026-03-28 12:00",
     outboundDate: "2026-03-19 10:00",
+    outboundIvNo: "TO2026031927",
     inboundDate: "2026-03-24 11:00",
     items: [
       { id: "item38", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", disposition: "store" as const },
@@ -468,6 +529,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-16 14:00",
     pickupDate: "2026-04-01 12:00",
     outboundDate: "2026-03-20 09:00",
+    outboundIvNo: "TO2026032028",
     inboundDate: "2026-03-25 14:00",
     items: [
       { id: "item39", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
@@ -490,6 +552,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-19 11:00",
     pickupDate: "2026-04-03 12:00",
     outboundDate: "2026-03-23 10:00",
+    outboundIvNo: "TO2026032329",
     inboundDate: undefined,
     items: [
       { id: "item41", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 2, unitPrice: 35000, totalPrice: 70000, barcode: undefined },
@@ -511,6 +574,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-21 16:00",
     pickupDate: "2026-04-06 12:00",
     outboundDate: "2026-03-25 09:00",
+    outboundIvNo: "TO2026032530",
     inboundDate: "2026-03-29 15:00",
     items: [
       { id: "item42", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", disposition: "warehouse" as const },
@@ -535,9 +599,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-15 11:00",
     pickupDate: "2026-03-27 12:00",
     outboundDate: "2026-03-19 10:00",
+    outboundIvNo: "TO2026031918",
     inboundDate: "2026-03-25 14:00",
     items: [
-      { id: "item25", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
+      { id: "item25", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "resellable" as const, disposition: "store" as const },
     ],
     subtotal: 299000, discount: 0, totalAmount: 299000, paidAmount: 299000,
     paymentMethod: "카카오페이",
@@ -559,9 +624,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-10 10:00",
     pickupDate: "2026-03-24 12:00",
     outboundDate: "2026-03-14 09:00",
+    outboundIvNo: "TO2026031431",
     inboundDate: "2026-03-20 11:00",
     items: [
-      { id: "item44", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "sellable" as const, disposition: "store" as const, outboundNo: "TOO01026" },
+      { id: "item44", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "sellable" as const, disposition: "store" as const },
     ],
     subtotal: 189000, discount: 0, totalAmount: 189000, paidAmount: 189000,
     paymentMethod: "신용카드",
@@ -580,10 +646,11 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-11 14:00",
     pickupDate: "2026-03-25 12:00",
     outboundDate: "2026-03-15 10:00",
+    outboundIvNo: "TO2026031532",
     inboundDate: "2026-03-21 14:00",
     items: [
-      { id: "item45", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "resellable" as const, disposition: "warehouse" as const, outboundNo: "TOO01026" },
-      { id: "item46", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 1, unitPrice: 45000, totalPrice: 45000, barcode: "8892841003", grading: "sellable" as const, disposition: "store" as const, outboundNo: "TOO01028" },
+      { id: "item45", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "resellable" as const, disposition: "store" as const },
+      { id: "item46", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 1, unitPrice: 45000, totalPrice: 45000, barcode: "8892841003", grading: "sellable" as const, disposition: "store" as const },
     ],
     subtotal: 495000, discount: 20000, totalAmount: 475000, paidAmount: 475000,
     paymentMethod: "카카오페이",
@@ -602,6 +669,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-13 09:00",
     pickupDate: "2026-03-27 12:00",
     outboundDate: "2026-03-17 11:00",
+    outboundIvNo: "TO2026031733",
     inboundDate: "2026-03-23 09:00",
     items: [
       { id: "item47", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "dispose" as const, disposition: "warehouse" as const, outboundNo: "TOO01027" },
@@ -623,10 +691,11 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-14 11:30",
     pickupDate: "2026-03-28 12:00",
     outboundDate: "2026-03-18 10:00",
+    outboundIvNo: "TO2026031834",
     inboundDate: "2026-03-24 13:00",
     items: [
-      { id: "item48", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 1, unitPrice: 35000, totalPrice: 35000, barcode: undefined, grading: "sellable" as const },
-      { id: "item49", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "resellable" as const },
+      { id: "item48", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 1, unitPrice: 35000, totalPrice: 35000, barcode: undefined, grading: "sellable" as const, disposition: "store" as const },
+      { id: "item49", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "resellable" as const, disposition: "store" as const },
     ],
     subtotal: 224000, discount: 0, totalAmount: 224000, paidAmount: 224000,
     paymentMethod: "네이버페이",
@@ -645,9 +714,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-16 15:00",
     pickupDate: "2026-03-30 12:00",
     outboundDate: "2026-03-20 09:00",
+    outboundIvNo: "TO2026032035",
     inboundDate: "2026-03-26 10:00",
     items: [
-      { id: "item50", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "resellable" as const, disposition: "store" as const, outboundNo: "TOO01028" },
+      { id: "item50", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "resellable" as const, disposition: "store" as const },
     ],
     subtotal: 450000, discount: 30000, totalAmount: 420000, paidAmount: 420000,
     paymentMethod: "신용카드",
@@ -666,10 +736,11 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-17 10:00",
     pickupDate: "2026-03-31 12:00",
     outboundDate: "2026-03-21 11:00",
+    outboundIvNo: "TO2026032136",
     inboundDate: "2026-03-27 14:00",
     items: [
-      { id: "item51", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "sellable" as const },
-      { id: "item52", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 1, unitPrice: 35000, totalPrice: 35000, barcode: undefined, grading: "dispose" as const },
+      { id: "item51", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "sellable" as const, disposition: "store" as const },
+      { id: "item52", productName: "PACKAGE SET(BOLD)", sku: "11403903", quantity: 1, unitPrice: 35000, totalPrice: 35000, barcode: undefined, grading: "dispose" as const, disposition: "warehouse" as const },
     ],
     subtotal: 334000, discount: 5000, totalAmount: 329000, paidAmount: 329000,
     paymentMethod: "토스",
@@ -688,9 +759,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-18 13:00",
     pickupDate: "2026-04-01 12:00",
     outboundDate: "2026-03-22 09:00",
+    outboundIvNo: "TO2026032237",
     inboundDate: "2026-03-28 11:00",
     items: [
-      { id: "item53", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "dispose" as const },
+      { id: "item53", productName: "URBAN WALKER-X", sku: "2200100", quantity: 1, unitPrice: 189000, totalPrice: 189000, barcode: "8892840001", grading: "dispose" as const, disposition: "warehouse" as const },
     ],
     subtotal: 189000, discount: 0, totalAmount: 189000, paidAmount: 189000,
     paymentMethod: "카카오페이",
@@ -709,9 +781,10 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-20 09:30",
     pickupDate: "2026-04-03 12:00",
     outboundDate: "2026-03-24 10:00",
+    outboundIvNo: "TO2026032438",
     inboundDate: "2026-03-30 09:00",
     items: [
-      { id: "item54", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 2, unitPrice: 45000, totalPrice: 90000, barcode: "8892841003", grading: "sellable" as const },
+      { id: "item54", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 2, unitPrice: 45000, totalPrice: 90000, barcode: "8892841003", grading: "sellable" as const, disposition: "store" as const },
     ],
     subtotal: 90000, discount: 0, totalAmount: 90000, paidAmount: 90000,
     paymentMethod: "네이버페이",
@@ -730,11 +803,12 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-22 14:00",
     pickupDate: "2026-04-05 12:00",
     outboundDate: "2026-03-26 09:00",
+    outboundIvNo: "TO2026032639",
     inboundDate: "2026-04-01 14:00",
     items: [
-      { id: "item55", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "resellable" as const },
-      { id: "item56", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "sellable" as const },
-      { id: "item57", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 1, unitPrice: 45000, totalPrice: 45000, barcode: "8892841003", grading: "dispose" as const },
+      { id: "item55", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098", grading: "resellable" as const, disposition: "store" as const },
+      { id: "item56", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002", grading: "sellable" as const, disposition: "store" as const },
+      { id: "item57", productName: "CARE KIT PREMIUM", sku: "3300201", quantity: 1, unitPrice: 45000, totalPrice: 45000, barcode: "8892841003", grading: "dispose" as const, disposition: "warehouse" as const },
     ],
     subtotal: 794000, discount: 50000, totalAmount: 744000, paidAmount: 744000,
     paymentMethod: "신용카드",
@@ -756,6 +830,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-04-04 09:00",
     pickupDate: "2026-04-26 12:00",
     outboundDate: "2026-04-08 10:00",
+    outboundIvNo: "TO2026040819",
     inboundDate: "2026-04-12 11:00",
     items: [
       { id: "item26", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -778,6 +853,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-04-02 15:00",
     pickupDate: "2026-05-03 12:00",
     outboundDate: "2026-04-06 09:00",
+    outboundIvNo: "TO2026040620",
     inboundDate: "2026-04-10 14:00",
     items: [
       { id: "item29", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },
@@ -800,6 +876,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-12 09:00",
     pickupDate: "2026-03-26 12:00",
     outboundDate: "2026-03-15 10:00",
+    outboundIvNo: "TO2026031521",
     inboundDate: "2026-03-24 10:00",
     items: [
       { id: "item30", productName: "SMART ALIO-01", sku: "1100000", quantity: 1, unitPrice: 299000, totalPrice: 299000, barcode: "8892839098" },
@@ -820,6 +897,7 @@ export const mockOrders: PickupOrder[] = [
     orderDate: "2026-03-10 14:00",
     pickupDate: "2026-03-20 12:00",
     outboundDate: "2026-03-14 09:00",
+    outboundIvNo: "TO2026031422",
     inboundDate: "2026-03-26 14:00",
     items: [
       { id: "item31", productName: "CLASSIC LEATHER BAG", sku: "3300200", quantity: 1, unitPrice: 450000, totalPrice: 450000, barcode: "8892841002" },

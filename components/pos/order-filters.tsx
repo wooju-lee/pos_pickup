@@ -36,6 +36,10 @@ interface OrderFiltersProps {
   onPickupStatusesChange: (value: PickupStatus[]) => void
   hidePickupStatus?: boolean
   onSearch?: () => void
+  dispositionFilter?: string
+  onDispositionFilterChange?: (value: string) => void
+  showDispositionFilter?: boolean
+  dateTypeOptions?: { value: string; label: string }[]
 }
 
 export function OrderFilters({
@@ -51,6 +55,10 @@ export function OrderFilters({
   onPickupStatusesChange,
   hidePickupStatus = false,
   onSearch,
+  dispositionFilter,
+  onDispositionFilterChange,
+  showDispositionFilter = false,
+  dateTypeOptions,
 }: OrderFiltersProps) {
   const today = new Date()
 
@@ -92,11 +100,15 @@ export function OrderFilters({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="order">Order Date</SelectItem>
-                <SelectItem value="pickup">Pickup Date</SelectItem>
-                <SelectItem value="outbound">Outbound Date</SelectItem>
-                <SelectItem value="inbound">Inbound Date</SelectItem>
-                <SelectItem value="completed">Pickup Completed Date</SelectItem>
+                {(dateTypeOptions || [
+                  { value: "order", label: "Order Date" },
+                  { value: "pickup", label: "Pickup Date" },
+                  { value: "outbound", label: "Outbound Date" },
+                  { value: "inbound", label: "Inbound Date" },
+                  { value: "completed", label: "Completed Date" },
+                ]).map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             
@@ -264,6 +276,26 @@ export function OrderFilters({
             </PopoverContent>
           </Popover>
         </div>}
+
+        {/* Stock Disposition Filter */}
+        {showDispositionFilter && (
+          <div>
+            <label className="text-sm font-medium text-muted-foreground block mb-2">
+              Stock Disposition
+            </label>
+            <Select value={dispositionFilter || "all"} onValueChange={(v) => onDispositionFilterChange?.(v)}>
+              <SelectTrigger style={{ height: 40 }} className="w-[160px] bg-secondary border-border text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="none">-</SelectItem>
+                <SelectItem value="store">Store Sales</SelectItem>
+                <SelectItem value="warehouse">Return W.H</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
       
       {/* Second Row - Search and Button */}

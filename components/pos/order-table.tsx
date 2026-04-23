@@ -113,7 +113,7 @@ function StatusBadge({ status }: { status: PickupStatus }) {
   )
 }
 
-function DispositionBadge({ disposition }: { disposition?: ItemDisposition }) {
+function DispositionBadge({ disposition, variant }: { disposition?: ItemDisposition; variant?: TableVariant }) {
   if (!disposition) {
     return <span className="text-sm text-muted-foreground">-</span>
   }
@@ -126,7 +126,7 @@ function DispositionBadge({ disposition }: { disposition?: ItemDisposition }) {
   }
   return (
     <span className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border whitespace-nowrap bg-violet-50 text-violet-600 border-violet-200">
-      Return W.H
+      {variant === "refund" ? "Return W.H Disposal" : "Return W.H"}
     </span>
   )
 }
@@ -207,7 +207,10 @@ export function OrderTable({
   })()
 
   // Items are selectable only if they match the first selected item's disposition type
+  // Store Sales items and items with outboundNo are never selectable
   const isItemSelectable = (row: typeof cancelItemRows[0]) => {
+    if (row.item.disposition === "store") return false
+    if (row.item.outboundNo) return false
     if (selectedItems.size === 0) return true
     if (selectedDispositionType === "mixed") return false
     const d = row.item.disposition ?? null
@@ -258,7 +261,9 @@ export function OrderTable({
                 </TableHead>
                 <SortableHead columnKey="orderDate" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Order Date</SortableHead>
                 <SortableHead columnKey="cancelledAt" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Cancel Date</SortableHead>
+                <SortableHead columnKey="inboundDate" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Inbound Date</SortableHead>
                 <TableHead className="font-semibold text-foreground text-center h-14">Stock Disposition</TableHead>
+                <TableHead className="font-semibold text-foreground text-center h-14">Outbound I/V No.</TableHead>
                 <SortableHead columnKey="orderNumber" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Order No.</SortableHead>
                 <TableHead className="font-semibold text-foreground h-14">Product Info</TableHead>
                 <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
@@ -285,8 +290,14 @@ export function OrderTable({
                     <TableCell className="text-sm text-center py-4 whitespace-nowrap">
                       {formatDateTime(order.cancelledAt)}
                     </TableCell>
+                    <TableCell className="text-sm text-center py-4 whitespace-nowrap">
+                      {formatDateTime(order.inboundDate)}
+                    </TableCell>
                     <TableCell className="text-center py-4">
                       <DispositionBadge disposition={item.disposition} />
+                    </TableCell>
+                    <TableCell className="text-sm text-center font-mono py-4">
+                      {item.outboundNo || "-"}
                     </TableCell>
                     <TableCell className="text-sm text-center font-mono py-4">
                       {order.orderNumber}
@@ -303,7 +314,7 @@ export function OrderTable({
               })}
               {cancelItemRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                     No cancelled orders found.
                   </TableCell>
                 </TableRow>
@@ -339,6 +350,8 @@ export function OrderTable({
   })()
 
   const isRefundItemSelectable = (row: typeof refundItemRows[0]) => {
+    if (row.item.disposition === "store") return false
+    if (row.item.outboundNo) return false
     if (selectedItems.size === 0 || variant !== "refund") return true
     if (refundSelectedDispositionType === "mixed") return false
     const d = row.item.disposition ?? null
@@ -362,20 +375,13 @@ export function OrderTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-secondary/50 hover:bg-secondary/50 border-b border-border">
-              <TableHead className="w-10 text-center h-14">
-                <Checkbox
-                  checked={allRefundSelectableSelected && refundSelectableRows.length > 0}
-                  onCheckedChange={toggleAllRefund}
-                />
-              </TableHead>
               <SortableHead columnKey="orderDate" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Order Date</SortableHead>
-              <SortableHead columnKey="returnedAt" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Return Date</SortableHead>
+              <SortableHead columnKey="returnedAt" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Refund Date</SortableHead>
               <TableHead className="font-semibold text-foreground text-center h-14">Stock Disposition</TableHead>
               <SortableHead columnKey="orderNumber" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Order No.</SortableHead>
               <TableHead className="font-semibold text-foreground h-14">Product Info</TableHead>
               <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
               <TableHead className="font-semibold text-foreground text-center h-14 min-w-[100px]">Grading</TableHead>
-              <TableHead className="font-semibold text-foreground text-center h-14">I/V No.(TO)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -386,13 +392,6 @@ export function OrderTable({
                   key={key}
                   className="hover:bg-secondary/30 border-b border-border"
                 >
-                  <TableCell className="text-center py-4">
-                    <Checkbox
-                      checked={selectedItems.has(key)}
-                      onCheckedChange={() => toggleItem(key)}
-                      disabled={!isRefundItemSelectable({ order, item, key })}
-                    />
-                  </TableCell>
                   <TableCell className="text-sm text-center py-4 whitespace-nowrap">
                     {formatDateTime(order.orderDate)}
                   </TableCell>
@@ -400,7 +399,7 @@ export function OrderTable({
                     {formatDateTime(order.returnedAt)}
                   </TableCell>
                   <TableCell className="text-center py-4">
-                    <DispositionBadge disposition={item.disposition} />
+                    <DispositionBadge disposition={item.disposition} variant="refund" />
                   </TableCell>
                   <TableCell className="text-sm text-center font-mono py-4">
                     {order.orderNumber}
@@ -418,15 +417,12 @@ export function OrderTable({
                       <span className="text-sm text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-center font-mono py-4">
-                    {item.outboundNo || "-"}
-                  </TableCell>
                 </TableRow>
               )
             })}
             {refundItemRows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   No refunded orders found.
                 </TableCell>
               </TableRow>
@@ -461,12 +457,7 @@ export function OrderTable({
                 <SortIcon columnKey="pickupDate" sortKey={sortKey} sortDirection={sortDirection} />
               </div>
             </TableHead>
-            <SortableHead columnKey="outboundDate" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>
-              <span className="flex flex-col items-center leading-tight">
-                <span>Outbound Date</span>
-                <span className="text-xs font-normal text-muted-foreground">(Registration)</span>
-              </span>
-            </SortableHead>
+            <SortableHead columnKey="outboundDate" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Outbound Date</SortableHead>
             <TableHead
               className="font-semibold text-foreground text-center h-14 cursor-pointer select-none hover:bg-secondary/80 transition-colors"
               onClick={() => onSort?.("inboundDate")}
@@ -484,12 +475,11 @@ export function OrderTable({
                 <SortIcon columnKey="inboundDate" sortKey={sortKey} sortDirection={sortDirection} />
               </div>
             </TableHead>
+            <SortableHead columnKey="outboundIvNo" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Inbound I/V No.</SortableHead>
             <SortableHead columnKey="orderNumber" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Order No.</SortableHead>
             <TableHead className="font-semibold text-foreground text-center h-14">Pickup Status</TableHead>
-            <TableHead className="font-semibold text-foreground h-14">
-              <div>Product Info</div>
-              <div className="text-xs font-normal text-muted-foreground">(Code / Name / Barcode / Qty)</div>
-            </TableHead>
+            <TableHead className="font-semibold text-foreground h-14">Product Info</TableHead>
+            <TableHead className="font-semibold text-foreground text-center h-14">Qty</TableHead>
             <SortableHead columnKey="completedAt" sortKey={sortKey} sortDirection={sortDirection} onSort={onSort}>Completed Date</SortableHead>
           </TableRow>
         </TableHeader>
@@ -534,6 +524,9 @@ export function OrderTable({
                   )}
                 </TableCell>
                 <TableCell className="text-sm text-center font-mono py-4">
+                  {order.outboundIvNo || "-"}
+                </TableCell>
+                <TableCell className="text-sm text-center font-mono py-4">
                   <span className="text-blue-600 underline underline-offset-2 hover:text-blue-800">
                     {order.orderNumber}
                   </span>
@@ -545,8 +538,15 @@ export function OrderTable({
                   <div className="space-y-1">
                     {order.items.map((item) => (
                       <div key={item.id} className="text-sm">
-                        {item.sku} / {item.productName} / {item.barcode || "-"} / <span className="font-medium">{item.quantity}</span>
+                        {item.sku} / {item.productName} / {item.barcode || "-"}
                       </div>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center py-4">
+                  <div className="space-y-1">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="text-sm">{item.quantity}</div>
                     ))}
                   </div>
                 </TableCell>
@@ -558,7 +558,7 @@ export function OrderTable({
           })}
           {orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+              <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                 No orders found.
               </TableCell>
             </TableRow>

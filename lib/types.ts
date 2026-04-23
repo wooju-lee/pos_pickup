@@ -56,7 +56,8 @@ export interface PickupOrder {
   customerEmail: string
   orderDate: string
   pickupDate: string
-  outboundDate: string      // 출고등록일
+  outboundDate?: string      // 출고등록일
+  outboundIvNo?: string     // I/V No. (TO)
   inboundDate?: string      // 입고일
   items: OrderItem[]
   subtotal: number

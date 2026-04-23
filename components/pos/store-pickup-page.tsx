@@ -39,18 +39,21 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
   const pickupSubTab = initialSubTab
 
   // Filter states (draft = UI inputs, applied = actually used for filtering)
+  const defaultDateType = initialSubTab === "cancel" ? "cancelled" : initialSubTab === "refund" ? "returned" : "order"
   const [searchQuery, setSearchQuery] = useState("")
-  const [dateType, setDateType] = useState("order")
+  const [dateType, setDateType] = useState(defaultDateType)
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   const [pickupStatuses, setPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed"])
+  const [dispositionFilter, setDispositionFilter] = useState("all")
 
   // Applied filter states (committed on Search click)
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("")
-  const [appliedDateType, setAppliedDateType] = useState("order")
+  const [appliedDateType, setAppliedDateType] = useState(defaultDateType)
   const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(subMonths(new Date(), 1))
   const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(new Date())
   const [appliedPickupStatuses, setAppliedPickupStatuses] = useState<PickupStatus[]>(["waiting", "ready", "completed"])
+  const [appliedDispositionFilter, setAppliedDispositionFilter] = useState("all")
 
   // Sort states
   const [sortKey, setSortKey] = useState<string>("orderDate")
@@ -133,6 +136,7 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
     setAppliedStartDate(startDate)
     setAppliedEndDate(endDate)
     setAppliedPickupStatuses(pickupStatuses)
+    setAppliedDispositionFilter(dispositionFilter)
     setCurrentPage(1)
   }
 
@@ -158,6 +162,15 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
         return false
       }
 
+      // Stock Disposition filter (cancel/refund tabs)
+      if (appliedDispositionFilter !== "all" && (pickupSubTab === "cancel" || pickupSubTab === "refund")) {
+        const hasMatchingItem = order.items.some((item) => {
+          if (appliedDispositionFilter === "none") return !item.disposition
+          return item.disposition === appliedDispositionFilter
+        })
+        if (!hasMatchingItem) return false
+      }
+
       // Date range filter
       if (appliedStartDate || appliedEndDate) {
         let dateValue: string | undefined
@@ -167,6 +180,8 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
           case "outbound": dateValue = order.outboundDate; break
           case "inbound": dateValue = order.inboundDate; break
           case "completed": dateValue = order.completedAt; break
+          case "cancelled": dateValue = order.cancelledAt; break
+          case "returned": dateValue = order.returnedAt; break
         }
         if (dateValue) {
           const d = new Date(dateValue)
@@ -192,6 +207,7 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
         case "orderDate": aVal = a.orderDate || ""; bVal = b.orderDate || ""; break
         case "pickupDate": aVal = a.pickupDate || ""; bVal = b.pickupDate || ""; break
         case "outboundDate": aVal = a.outboundDate || ""; bVal = b.outboundDate || ""; break
+        case "outboundIvNo": aVal = a.outboundIvNo || ""; bVal = b.outboundIvNo || ""; break
         case "inboundDate": aVal = a.inboundDate || ""; bVal = b.inboundDate || ""; break
         case "orderNumber": aVal = a.orderNumber; bVal = b.orderNumber; break
         case "completedAt": aVal = a.completedAt || ""; bVal = b.completedAt || ""; break
@@ -582,7 +598,7 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
       rows = filteredOrders.flatMap((order) =>
         order.items.map((item) => ({
           "Order Date": formatDT(order.orderDate),
-          "Return Date": formatDT(order.returnedAt),
+          "Refund Date": formatDT(order.returnedAt),
           "Stock Disposition": item.disposition ? dispositionLabels[item.disposition] || "-" : "-",
           "Order No.": order.orderNumber,
           "Product Code": item.sku,
@@ -637,6 +653,23 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
                 onPickupStatusesChange={setPickupStatuses}
                 hidePickupStatus={pickupSubTab !== "pickup"}
                 onSearch={handleSearch}
+                dispositionFilter={dispositionFilter}
+                onDispositionFilterChange={setDispositionFilter}
+                showDispositionFilter={pickupSubTab === "cancel" || pickupSubTab === "refund"}
+                dateTypeOptions={
+                  pickupSubTab === "cancel"
+                    ? [
+                        { value: "cancelled", label: "Cancel Date" },
+                        { value: "order", label: "Order Date" },
+                        { value: "inbound", label: "Inbound Date" },
+                      ]
+                    : pickupSubTab === "refund"
+                      ? [
+                          { value: "returned", label: "Refund Date" },
+                          { value: "order", label: "Order Date" },
+                        ]
+                      : undefined
+                }
               />
 
               {/* QR Scan - only for pickup tab */}
@@ -740,17 +773,6 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
                     </Button>
                   )}
                   {pickupSubTab === "cancel" && (
-                    <Button
-                      variant="outline"
-                      disabled={selectedListItems.size === 0 || !hasSelectedPending}
-                      onClick={() => setIsChangeStockOpen(true)}
-                      className="gap-2 bg-secondary border-border text-foreground hover:bg-muted hover:text-primary"
-                    >
-                      <Package className="h-4 w-4" />
-                      Change Stock
-                    </Button>
-                  )}
-                  {pickupSubTab === "refund" && (
                     <>
                       <Button
                         variant="outline"
