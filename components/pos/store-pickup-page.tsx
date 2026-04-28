@@ -149,10 +149,12 @@ export function StorePickupPage({ initialSubTab = "pickup" }: StorePickupPagePro
         const matchesSearch =
           order.orderNumber.toLowerCase().includes(query) ||
           order.customerName.toLowerCase().includes(query) ||
+          (order.outboundIvNo && order.outboundIvNo.toLowerCase().includes(query)) ||
           order.items.some(
             (item) =>
               item.sku.toLowerCase().includes(query) ||
-              item.productName.toLowerCase().includes(query)
+              item.productName.toLowerCase().includes(query) ||
+              (item.outboundNo && item.outboundNo.toLowerCase().includes(query))
           )
         if (!matchesSearch) return false
       }

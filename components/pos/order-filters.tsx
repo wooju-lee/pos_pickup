@@ -302,7 +302,7 @@ export function OrderFilters({
       <div className="flex items-end justify-between gap-4">
         <div className="space-y-2 flex-1 max-w-md">
           <label className="text-sm font-medium text-muted-foreground">
-            Order No., Product Code, Product Name
+            Order No., Product Code, Product Name, I/V No.
           </label>
           <div className="relative">
             <Input

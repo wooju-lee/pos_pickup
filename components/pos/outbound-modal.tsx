@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -22,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { PickupOrder, OrderItem, OutboundLocation } from "@/lib/types"
-import { Warehouse, MapPin } from "lucide-react"
+import { Warehouse, Store, MapPin } from "lucide-react"
 
 interface OutboundItem {
   order: PickupOrder
@@ -36,6 +42,44 @@ interface OutboundModalProps {
   onConfirm: (items: { orderId: string; itemId: string }[], location: OutboundLocation) => Promise<void>
 }
 
+// POS store code → country → online store mapping
+const STORE_COUNTRY_MAP: Record<string, string> = {
+  CA: "CA",
+  US: "US",
+  KR: "KR",
+  JP: "JP",
+  CN: "CN",
+  HK: "HK",
+  SG: "SG",
+  GB: "GB",
+  FR: "FR",
+  DE: "DE",
+}
+
+const ONLINE_STORE_MAP: Record<string, { code: string; name: string }> = {
+  CA: { code: "CA1017", name: "GM_RX_CANADA" },
+  US: { code: "US1017", name: "GM_RX_USA" },
+  KR: { code: "KR1017", name: "GM_RX_KOREA" },
+  JP: { code: "JP1017", name: "GM_RX_JAPAN" },
+  CN: { code: "CN1017", name: "GM_RX_CHINA" },
+  HK: { code: "HK1017", name: "GM_RX_HONGKONG" },
+  SG: { code: "SG1017", name: "GM_RX_SINGAPORE" },
+  GB: { code: "GB1017", name: "GM_RX_UK" },
+  FR: { code: "FR1017", name: "GM_RX_FRANCE" },
+  DE: { code: "DE1017", name: "GM_RX_GERMANY" },
+}
+
+const LOCATIONS = [
+  { value: "available", label: "1110 / AVAILABLE", enabled: true },
+  { value: "disposal", label: "1112 / DISPOSAL", enabled: false },
+]
+
+function getOnlineStoreFromPosCode(posStoreCode: string) {
+  const countryPrefix = posStoreCode.replace(/[0-9]/g, "")
+  const country = STORE_COUNTRY_MAP[countryPrefix] || countryPrefix
+  return ONLINE_STORE_MAP[country] || { code: `${countryPrefix}1017`, name: `GM_RX_${countryPrefix}` }
+}
+
 export function OutboundModal({
   open,
   onOpenChange,
@@ -44,6 +88,10 @@ export function OutboundModal({
 }: OutboundModalProps) {
   const [location, setLocation] = useState<OutboundLocation | "">("")
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Derive online store from POS store code
+  const posStoreCode = "CA1001" // TODO: from context/props
+  const onlineStore = getOnlineStoreFromPosCode(posStoreCode)
 
   const handleConfirm = async () => {
     if (!location || isProcessing) return
@@ -80,18 +128,6 @@ export function OutboundModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Fixed Store Info */}
-          <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">From Store</span>
-              <span className="text-sm font-medium"><span className="text-primary font-bold">CA1001</span> / GM_TORONTO_MALL_YORKDALE</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">To Store</span>
-              <span className="text-sm font-medium">CA Online W.H</span>
-            </div>
-          </div>
-
           {/* Items */}
           <div>
             <h3 className="text-sm font-semibold mb-3">Outbound Items ({items.length} items, {totalQty} qty)</h3>
@@ -119,59 +155,72 @@ export function OutboundModal({
 
           <Separator />
 
-          {/* Online Location Selection */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-semibold">
-              <MapPin className="h-4 w-4" />
-              Online Location
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Select the online warehouse location for this outbound.
-            </p>
-            <RadioGroup
-              value={location}
-              onValueChange={(v) => setLocation(v as OutboundLocation)}
-              className="space-y-2"
-            >
-              <label
-                htmlFor="ob_available"
-                className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-              >
-                <RadioGroupItem value="available" id="ob_available" />
-                <div className="flex-1">
-                  <p className="font-medium">Available</p>
-                  <p className="text-sm text-muted-foreground">Sellable inventory — available for online sales</p>
-                </div>
-              </label>
-              <label
-                htmlFor="ob_disposal"
-                className="flex items-center space-x-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-secondary/30 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-              >
-                <RadioGroupItem value="disposal" id="ob_disposal" />
-                <div className="flex-1">
-                  <p className="font-medium">Disposal</p>
-                  <p className="text-sm text-muted-foreground">Non-sellable inventory — for disposal processing</p>
-                </div>
-              </label>
-            </RadioGroup>
+          {/* Store & Location Dropdowns */}
+          <div className="p-5 rounded-lg bg-muted/30 border border-border">
+            <div className="grid grid-cols-2 gap-6">
+              {/* Store Information - fixed based on POS store */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Store className="h-3.5 w-3.5" />
+                  Store Information
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select value={onlineStore.code} disabled>
+                  <SelectTrigger className="h-9 bg-background text-xs">
+                    <SelectValue>{onlineStore.code} / {onlineStore.name}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={onlineStore.code} className="text-xs">
+                      {onlineStore.code} / {onlineStore.name}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Location - dropdown with availability */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-sm font-semibold">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Location
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select value={location} onValueChange={(v) => setLocation(v as OutboundLocation)}>
+                  <SelectTrigger className="h-9 bg-background text-xs">
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LOCATIONS.map((loc) => (
+                      <SelectItem
+                        key={loc.value}
+                        value={loc.value}
+                        disabled={!loc.enabled}
+                        className="text-xs"
+                      >
+                        {loc.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
           {/* Confirm */}
           <div className="flex justify-end">
             <Button
-              size="lg"
+              size="sm"
               onClick={handleConfirm}
               disabled={isProcessing || !location}
-              className="h-12 px-8 text-base gap-2"
+              className="gap-1.5"
             >
               {isProcessing ? (
                 <>
-                  <Spinner className="h-5 w-5" />
+                  <Spinner className="h-4 w-4" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <Warehouse className="h-5 w-5" />
+                  <Warehouse className="h-4 w-4" />
                   Register Outbound
                 </>
               )}
