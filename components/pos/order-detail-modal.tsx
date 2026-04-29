@@ -30,7 +30,8 @@ import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import type { PickupOrder, PickupStatus, InventoryLocation, ReturnGrading, ItemDisposition } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { CheckCircle, XCircle, MapPin, Star, Package, Store, Warehouse } from "lucide-react"
+import { CheckCircle, XCircle, MapPin, Star, Package, Store, Warehouse, Info } from "lucide-react"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import type { TableVariant } from "./order-table"
 
 const CANCEL_REASONS = [
@@ -120,7 +121,9 @@ export function OrderDetailModal({
   if (!order) return null
 
   const canProcess = order.status === "pending" || order.status === "ready"
-  const canPickup = canProcess && !!order.inboundDate
+  const hasInbound = !!order.inboundDate
+  const canPickup = canProcess && hasInbound
+  const canCancel = canProcess && hasInbound
   const totalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0)
 
 
@@ -276,23 +279,35 @@ export function OrderDetailModal({
                 {formatCurrency(totalAmount)}
               </span>
             </div>
-            <p className="text-xs text-blue-500 mt-2">Total amount includes product price and VAT.</p>
+            <p className="text-xs text-emerald-500 mt-2">Total amount includes product price and VAT.</p>
           </div>
 
           {/* === PICKUP TAB: Action Buttons === */}
           {tabContext === "pickup" && canProcess && !isCancelling && (
             <div className="space-y-2 pt-4">
               <div className="flex justify-end gap-4">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setIsCancelling(true)}
-                  disabled={isProcessing}
-                  className="gap-1.5"
-                >
-                  <XCircle className="h-4 w-4" />
-                  Cancel
-                </Button>
+                <div className="flex items-center gap-1">
+                  {!canCancel && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-destructive cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs bg-red-50 text-red-900 border-red-200 [&>svg]:bg-red-50 [&>svg]:fill-red-50">
+                        POS cancellation is not available before receiving; only .com customer cancellations are allowed.
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setIsCancelling(true)}
+                    disabled={!canCancel || isProcessing}
+                    className="gap-1.5"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
                 <Button
                   size="sm"
                   onClick={async () => {
