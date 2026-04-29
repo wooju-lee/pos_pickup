@@ -276,6 +276,7 @@ export function OrderDetailModal({
                 {formatCurrency(totalAmount)}
               </span>
             </div>
+            <p className="text-xs text-blue-500 mt-2">Total amount includes product price and VAT.</p>
           </div>
 
           {/* === PICKUP TAB: Action Buttons === */}
@@ -284,16 +285,16 @@ export function OrderDetailModal({
               <div className="flex justify-end gap-4">
                 <Button
                   variant="destructive"
-                  size="lg"
+                  size="sm"
                   onClick={() => setIsCancelling(true)}
                   disabled={isProcessing}
-                  className="gap-2 h-12 px-8 text-base"
+                  className="gap-1.5"
                 >
-                  <XCircle className="h-5 w-5" />
+                  <XCircle className="h-4 w-4" />
                   Cancel
                 </Button>
                 <Button
-                  size="lg"
+                  size="sm"
                   onClick={async () => {
                     if (isProcessing) return
                     setIsProcessing(true)
@@ -304,26 +305,21 @@ export function OrderDetailModal({
                     }
                   }}
                   disabled={!canPickup || isProcessing}
-                  className="gap-2 h-12 px-8 text-base"
+                  className="gap-1.5"
                 >
                   {isProcessing ? (
                     <>
-                      <Spinner className="h-5 w-5" />
+                      <Spinner className="h-4 w-4" />
                       Processing...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-4 w-4" />
                       Pickup
                     </>
                   )}
                 </Button>
               </div>
-              {!canPickup && (
-                <p className="text-xs text-muted-foreground text-right">
-                  Pickup completion is unavailable because inbound has not been completed.
-                </p>
-              )}
             </div>
           )}
 
